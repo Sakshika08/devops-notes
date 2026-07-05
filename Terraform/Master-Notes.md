@@ -1,4 +1,4 @@
-## Why Infrastructure as Code (IaC)?
+# Why Infrastructure as Code (IaC)?
 
 Before the advent of IaC:
 
@@ -21,6 +21,7 @@ resource "aws_instance" "example" {
   instance_type = "t2.micro"
 }
 ```
+Eg. azurerm - for Azure
 
 - **Resource**: A resource is a specific infrastructure component that you want to create and manage using Terraform. Resources can include virtual machines, databases, storage buckets, network components, and more. Each resource has a type and configuration parameters that you define in your Terraform code.
 
