@@ -100,6 +100,7 @@ You reference the input variable using var.example_var.
 
 **Output Variables**
 Output variables allow you to expose values from your module or configuration, making them available for use in other parts of your Terraform setup. Here's how you define an output variable:
+
 ``hcl
 output "example_output" {
   description = "An example output variable"
@@ -107,8 +108,8 @@ output "example_output" {
 }
 ```
 You can reference output variables in the root module or in other modules by using the syntax module.module_name.output_name, where module_name is the name of the module containing the output variable.
-
 For example, if you have an output variable named example_output in a module called example_module, you can access it in the root module like this:
+
 ``hcl
 output "root_output" {
   value = module.example_module.example_output
@@ -177,3 +178,21 @@ resource "aws_instance" "example2" {
   provider = "aws.us-west-2"
 }
 ```
+
+### Conditional Expressions
+Conditional expressions in Terraform are used to define conditional logic within your configurations. They allow you to make decisions or set values based on conditions. Conditional expressions are typically used to control whether resources are created or configured based on the evaluation of a condition.
+
+The syntax for a conditional expression in Terraform is:
+```hcl
+condition ? true_val : false_val
+```
+**Conditional Resource Creation Example**
+```hcl
+resource "aws_instance" "example" {
+  count = var.create_instance ? 1 : 0
+
+  ami           = "ami-XXXXXXXXXXXXXXXXX"
+  instance_type = "t2.micro"
+}
+```
+In this example, the count attribute of the aws_instance resource uses a conditional expression. If the create_instance variable is true, it creates one EC2 instance. If create_instance is false, it creates zero instances, effectively skipping resource creation.
