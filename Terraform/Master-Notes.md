@@ -15,6 +15,7 @@ A provider is a plugin for Terraform that defines and manages resources for a sp
 
 **Different Ways to Configure Providers in Terraform**
 #### In the Root Module
+This is the most common way to configure providers. The provider configuration block is placed in the root module of the Terraform configuration. This makes the provider configuration available to all the resources in the configuration.
 
  ```hcl
 provider "aws" {
