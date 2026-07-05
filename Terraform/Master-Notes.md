@@ -29,6 +29,41 @@ resource "aws_instance" "example" {
 ```
 Eg. azurerm - for Azure
 
+#### In a child module
+You can also configure providers in a child module. This is useful if you want to reuse the same provider configuration in multiple resources.
+```hcl
+module "aws_vpc" {
+  source = "./aws_vpc"
+  providers = {
+    aws = aws.us-west-2
+  }
+}
+
+resource "aws_instance" "example" {
+  ami = "ami-0123456789abcdef0"
+  instance_type = "t2.micro"
+  depends_on = [module.aws_vpc]
+}
+```
+#### In the required_providers block
+You can also configure providers in the required_providers block. This is useful if you want to make sure that a specific provider version is used.
+```hcl
+terraform {
+  required_providers {
+    aws = {
+      source = "hashicorp/aws"
+      version = "~> 3.79"
+    }
+  }
+}
+
+resource "aws_instance" "example" {
+  ami = "ami-0123456789abcdef0"
+  instance_type = "t2.micro"
+}
+```
+The best way to configure providers depends on your specific needs. If you are only using a single provider, then configuring it in the root module is the simplest option. If you are using multiple providers, or if you want to reuse the same provider configuration in multiple resources, then configuring it in a child module is a good option. And if you want to make sure that a specific provider version is used, then configuring it in the required_providers block is the best option.
+
 - **Resource**: A resource is a specific infrastructure component that you want to create and manage using Terraform. Resources can include virtual machines, databases, storage buckets, network components, and more. Each resource has a type and configuration parameters that you define in your Terraform code.
 
 - **Module**: A module is a reusable and encapsulated unit of Terraform code. Modules allow you to package infrastructure configurations, making it easier to maintain, share, and reuse them across different parts of your infrastructure. Modules can be your own creations or come from the Terraform Registry, which hosts community-contributed modules.
@@ -49,4 +84,28 @@ Eg. azurerm - for Azure
 
 - **Remote Backend**: A remote backend is a storage location for your Terraform state files that is not stored locally. Popular choices for remote backends include Amazon S3, Azure Blob Storage, or HashiCorp Terraform Cloud. Remote backends enhance collaboration and provide better security and reliability for your state files.
 
+### Multiple Region Implementation in Terraform
+You can make use of alias keyword to implement multi region infrastructure setup in terraform
+```hcl
+provider "aws" {
+  alias = "us-east-1"
+  region = "us-east-1"
+}
 
+provider "aws" {
+  alias = "us-west-2"
+  region = "us-west-2"
+}
+
+resource "aws_instance" "example" {
+  ami = "ami-0123456789abcdef0"
+  instance_type = "t2.micro"
+  provider = "aws.us-east-1"
+}
+
+resource "aws_instance" "example2" {
+  ami = "ami-0123456789abcdef0"
+  instance_type = "t2.micro"
+  provider = "aws.us-west-2"
+}
+```
