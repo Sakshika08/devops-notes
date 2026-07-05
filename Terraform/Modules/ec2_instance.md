@@ -1,6 +1,6 @@
 ### EC2 intance all main.ft, output.ft and variable.tf files
 **main.tf**
-``hcl
+```hcl
 provider "aws" {
   region = "us-east-1"
 }
@@ -20,6 +20,7 @@ output "public-ip-address" {
 ```
 
 **variable.tf**
+```hcl
 variable "ami_value" {
     description = "value for the ami"
 }
@@ -31,3 +32,4 @@ variable "instance_type_value" {
 variable "subnet_id_value" {
     description = "value for the subnet_id"
 }
+```
