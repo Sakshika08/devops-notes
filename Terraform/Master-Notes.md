@@ -110,7 +110,7 @@ output "example_output" {
 You can reference output variables in the root module or in other modules by using the syntax module.module_name.output_name, where module_name is the name of the module containing the output variable.
 For example, if you have an output variable named example_output in a module called example_module, you can access it in the root module like this:
 
-``hcl
+```hcl
 output "root_output" {
   value = module.example_module.example_output
 }
@@ -218,7 +218,7 @@ output "combined_list" {
 ```
 
 2. **element(list, index): Returns the element at the specified index in a list.**
-``hcl
+```hcl
 variable "my_list" {
   type    = list
   default = ["apple", "banana", "cherry"]
