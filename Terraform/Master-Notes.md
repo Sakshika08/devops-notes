@@ -239,7 +239,7 @@ output "list_length" {
 ```
 
 3. **map(key, value): Creates a map from a list of keys and a list of values.**
-``hcl
+```hcl
 variable "keys" {
   type    = list
   default = ["name", "age"]
