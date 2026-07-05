@@ -10,7 +10,12 @@ Before the advent of IaC:
 
 ## key terminology and concept
 
-- **Provider**: A provider is a plugin for Terraform that defines and manages resources for a specific cloud or infrastructure platform. Examples of providers include AWS, Azure, Google Cloud, and many others. You configure providers in your Terraform code to interact with the desired infrastructure platform.
+- ### Provider: 
+A provider is a plugin for Terraform that defines and manages resources for a specific cloud or infrastructure platform. Examples of providers include AWS, Azure, Google Cloud, and many others. You configure providers in your Terraform code to interact with the desired infrastructure platform.
+
+**Different Ways to Configure Providers in Terraform**
+#### In the Root Module
+
  ```hcl
 provider "aws" {
   region = "us-east-1"
