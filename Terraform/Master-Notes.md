@@ -51,12 +51,8 @@ You can also configure providers in the required_providers block. This is useful
 terraform {
   required_providers {
     aws = {
-      source  = "hashicorp/aws"
-      version = "~> 3.0"
-    }
-    azurerm = {
-      source  = "hashicorp/azurerm"
-      version = ">= 2.0, < 3.0"
+      source = "hashicorp/aws"
+      version = "~> 3.79"
     }
   }
 }
@@ -67,6 +63,38 @@ resource "aws_instance" "example" {
 }
 ```
 The best way to configure providers depends on your specific needs. If you are only using a single provider, then configuring it in the root module is the simplest option. If you are using multiple providers, or if you want to reuse the same provider configuration in multiple resources, then configuring it in a child module is a good option. And if you want to make sure that a specific provider version is used, then configuring it in the required_providers block is the best option.
+
+### Multiple Providers
+You can use multiple providers in one single terraform project. For example,
+
+1. Create a providers.tf file in the root directory of your Terraform project.
+2. In the providers.tf file, define the AWS and Azure providers. For example:
+```hcl
+provider "aws" {
+  region = "us-east-1"
+}
+
+provider "azurerm" {
+  subscription_id = "your-azure-subscription-id"
+  client_id = "your-azure-client-id"
+  client_secret = "your-azure-client-secret"
+  tenant_id = "your-azure-tenant-id"
+}
+```
+
+3. In your other Terraform configuration files, you can then use the aws and azurerm providers to create resources in AWS and Azure, respectively,
+```hcl
+resource "aws_instance" "example" {
+  ami = "ami-0123456789abcdef0"
+  instance_type = "t2.micro"
+}
+
+resource "azurerm_virtual_machine" "example" {
+  name = "example-vm"
+  location = "eastus"
+  size = "Standard_A1"
+}
+```
 
 ### Resource
 A resource is a specific infrastructure component that you want to create and manage using Terraform. Resources can include virtual machines, databases, storage buckets, network components, and more. Each resource has a type and configuration parameters that you define in your Terraform code.
