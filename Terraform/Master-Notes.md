@@ -77,8 +77,8 @@ Benefits of Modules:
 
 **Reusability:** Use the same infrastructure code across multiple projects and environments.
 **Modularity:** Break complex infrastructure into smaller, manageable components.
-**Maintainability:** Update infrastructure logic in one place.
-**Consistency:** Enforce standardized configurations across deployments.
+**Maintainability:** Update infrastructure logic in one place. 
+**Consistency:** Enforce standardized configurations across deployments. 
 **Collaboration:** Teams can work independently on different modules.
 **Versioning:** Modules can be version-controlled and upgraded safely.
 **Abstraction:** Hide implementation details and expose only required inputs and outputs.
