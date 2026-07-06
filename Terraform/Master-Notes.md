@@ -168,6 +168,8 @@ A remote backend is a storage location for your Terraform state files that is no
 
 ### Multiple Region Implementation in Terraform
 You can make use of alias keyword to implement multi region infrastructure setup in terraform
+Note: ```provider = aws.us-east-1``` uses the AWS provider alias ```us-east-1``` to create the resource in that specific provider configuration
+
 ```hcl
 provider "aws" {
   alias = "us-east-1"
