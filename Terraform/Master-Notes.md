@@ -10,7 +10,7 @@ Before the advent of IaC:
 
 ## key terminology and concept
 
-### Provider: 
+## 1. Provider: 
 A provider is a plugin for Terraform that defines and manages resources for a specific cloud or infrastructure platform. Examples of providers include AWS, Azure, Google Cloud, and many others. You configure providers in your Terraform code to interact with the desired infrastructure platform.
 
 **Different Ways to Configure Providers in Terraform**
@@ -96,10 +96,10 @@ resource "azurerm_virtual_machine" "example" {
 }
 ```
 
-### Resource
+## 2. Resource
 A resource is a specific infrastructure component that you want to create and manage using Terraform. Resources can include virtual machines, databases, storage buckets, network components, and more. Each resource has a type and configuration parameters that you define in your Terraform code.
 
-### Module
+## 3. Module
 A Terraform module is a reusable and self-contained collection of Terraform configuration files that groups related resources together. Modules help organize infrastructure code, improve reusability, and reduce duplication. Terraform provides a root module by default, and additional child modules can be created or sourced from the Terraform Registry.
 Benefits of Modules:
 
@@ -114,10 +114,10 @@ Benefits of Modules:
 
 Modules can be your own creations or come from the Terraform Registry, which hosts community-contributed modules.
 
-### Configuration File
+## 4. Configuration File
 Terraform uses configuration files (often with a .tf extension) to define the desired infrastructure state. These files specify providers, resources, variables, and other settings. The primary configuration file is usually named main.tf, but you can use multiple configuration files as well.
 
-### Variable 
+## 5. Variable 
 Variables in Terraform are placeholders for values that can be passed into your configurations. They make your code more flexible and reusable by allowing you to define values outside of your code and pass them in when you apply the Terraform configuration.
 
 **Input Variables**
@@ -158,7 +158,7 @@ output "root_output" {
 ```
 This allows you to share data and values between different parts of your Terraform configuration and create more modular and maintainable infrastructure-as-code setups.
 
-### Terraform tfvars
+## 6. Terraform tfvars
 Separation of Configuration from Code: Keep variable values outside .tf files, making code reusable and easier to manage across environments.
 Sensitive Information: Can store secrets like passwords, API keys, and credentials, but it is recommended to use secret management solutions (Vault, AWS Secrets Manager, etc.) instead.
 Reusability: Use the same Terraform code with different variable values for multiple environments (Dev, Test, Prod).
@@ -179,22 +179,72 @@ terraform apply -var-file=dev.tfvars
 ```
 .tfvars files help keep infrastructure code flexible, reusable, and environment-specific.
 
-### State File 
+## 7. State File 
 Terraform maintains a state file (often named terraform.tfstate) that keeps track of the current state of your infrastructure. This file is crucial for Terraform to understand what resources have been created and what changes need to be made during updates.
+This file, often named ```terraform.tfstate```, is a JSON or HCL (HashiCorp Configuration Language) formatted
 
-### Plan
+### Advantages of Terraform State File:
+**1. Resource Tracking:** The state file keeps track of all the resources managed by Terraform, including their attributes and dependencies. This ensures that Terraform can accurately update or destroy resources when necessary.
+
+**2. Concurrency Control:** Terraform uses the state file to lock resources, preventing multiple users or processes from modifying the same resource simultaneously. This helps avoid conflicts and ensures data consistency.
+
+**3. Plan Calculation:** Terraform uses the state file to calculate and display the difference between the desired configuration (defined in your Terraform code) and the current infrastructure state. This helps you understand what changes Terraform will make before applying them.
+
+**4. Resource Metadata:** The state file stores metadata about each resource, such as unique identifiers, which is crucial for managing resources and understanding their relationships.
+
+### Disadvantages of Storing Terraform State in Version Control Systems (VCS):
+**1. Security Risks:** Sensitive information, such as API keys or passwords, may be stored in the state file if it's committed to a VCS. This poses a security risk because VCS repositories are often shared among team members.
+
+**2. Versioning Complexity:** Managing state files in VCS can lead to complex versioning issues, especially when multiple team members are working on the same infrastructure.
+
+### Overcoming Disadvantages with Remote Backends (e.g., S3):
+A remote backend stores the Terraform state file outside of your local file system and version control. Using S3 as a remote backend is a popular choice due to its reliability and scalability. Here's how to set it up:
+
+**1. Create an S3 Bucket:** Create an S3 bucket in your AWS account to store the Terraform state. Ensure that the appropriate IAM permissions are set up.
+
+**2. Configure Remote Backend in Terraform:**
+```
+# In your Terraform configuration file (e.g., main.tf), define the remote backend.
+terraform {
+  backend "s3" {
+    bucket         = "your-terraform-state-bucket"
+    key            = "path/to/your/terraform.tfstate"
+    region         = "us-east-1" # Change to your desired region
+    encrypt        = true
+    dynamodb_table = "your-dynamodb-table"
+  }
+}
+```
+Replace ```"your-terraform-state-bucket"``` and ```"path/to/your/terraform.tfstate"``` with your S3 bucket and desired state file path.
+
+**3. DynamoDB Table for State Locking:**
+To enable state locking, create a DynamoDB table and provide its name in the dynamodb_table field. This prevents concurrent access issues when multiple users or processes run Terraform.
+
+### State Locking with DynamoDB:
+DynamoDB is used for state locking when a remote backend is configured. It ensures that only one user or process can modify the Terraform state at a time. Here's how to create a DynamoDB table and configure it for state locking:
+
+**1. Create a DynamoDB Table:**
+You can create a DynamoDB table using the AWS Management Console or AWS CLI. Here's an AWS CLI example:
+```aws dynamodb create-table --table-name your-dynamodb-table --attribute-definitions AttributeName=LockID,AttributeType=S --key-schema AttributeName=LockID,KeyType=HASH --provisioned-throughput ReadCapacityUnits=5,WriteCapacityUnits=5```
+
+**2.Configure the DynamoDB Table in Terraform Backend Configuration:**
+In your Terraform configuration, as shown above, provide the DynamoDB table name in the dynamodb_table field under the backend configuration.
+
+By following these steps, you can securely store your Terraform state in S3 with state locking using DynamoDB, mitigating the disadvantages of storing sensitive information in version control systems and ensuring safe concurrent access to your infrastructure. 
+
+## 8. Plan
 A Terraform plan is a preview of changes that Terraform will make to your infrastructure. When you run terraform plan, Terraform analyzes your configuration and current state, then generates a plan detailing what actions it will take during the apply step.
 
-### Apply
+## 9. Apply
 The terraform apply command is used to execute the changes specified in the plan. It creates, updates, or destroys resources based on the Terraform configuration.
 
-### Workspace
+## 10. Workspace
 Workspaces in Terraform are a way to manage multiple environments (e.g., development, staging, production) with separate configurations and state files. Workspaces help keep infrastructure configurations isolated and organized.
 
-### Remote Backend 
+## 11. Remote Backend 
 A remote backend is a storage location for your Terraform state files that is not stored locally. Popular choices for remote backends include Amazon S3, Azure Blob Storage, or HashiCorp Terraform Cloud. Remote backends enhance collaboration and provide better security and reliability for your state files.
 
-### Multiple Region Implementation in Terraform
+## 12. Multiple Region Implementation in Terraform
 You can make use of alias keyword to implement multi region infrastructure setup in terraform
 Note: ```provider = aws.us-east-1``` uses the AWS provider alias ```us-east-1``` to create the resource in that specific provider configuration
 
@@ -222,7 +272,7 @@ resource "aws_instance" "example2" {
 }
 ```
 
-### Conditional Expressions
+## 13. Conditional Expressions
 Conditional expressions in Terraform are used to define conditional logic within your configurations. They allow you to make decisions or set values based on conditions. Conditional expressions are typically used to control whether resources are created or configured based on the evaluation of a condition.
 
 The syntax for a conditional expression in Terraform is:
