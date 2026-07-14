@@ -118,12 +118,31 @@ Reusability
 Team collaboration
 
 ## 7. State File
-File:
-``` terraform.tfstate ```
+File: ``` terraform.tfstate ```
 
 Purpose:
 Tracks current infrastructure state.
 Terraform compares state file and code to determine changes.
+
+**Why Important?**
+Tracks created resources.
+Stores resource IDs/metadata.
+Required for terraform plan and terraform apply.
+
+**Problems with Local State**
+Sensitive data may be exposed.
+Difficult collaboration.
+No proper locking.
+
+**Remote Backend** Stores state remotely.
+
+**State Locking**
+Prevents multiple users from modifying state simultaneously.
+Implemented using DynamoDB.
+
+**Production Standard**
+S3 → State Storage
+DynamoDB → State Locking
 
 ## 8. Plan
 Command: ``` terraform plan ```
@@ -151,7 +170,7 @@ terraform workspace new dev
 terraform workspace select dev
 ```
 
-11. Remote Backend
+## 11. Remote Backend
 Stores state remotely instead of locally.
 
 Examples:
@@ -166,4 +185,35 @@ Security
 Backup
 Multiple Providers
 
-Example AWS + Azure:
+## 12. Multi-Region Deployment
+Use provider alias to deploy resources in multiple AWS regions.
+Define multiple providers with alias.
+Specify provider in resource using provider = aws.alias_name.
+
+Remember: Alias = Same cloud, different regions.
+
+```
+provider "aws" {
+  alias = "east"
+}
+
+provider "aws" {
+  alias = "west"
+}
+```
+
+## 13. Conditional Expression
+**Syntax:** ```condition ? true_value : false_value```
+
+**Common Use:** ```count = var.create_instance ? 1 : 0```
+
+Remember: Used to create/skip resources based on a condition.
+
+Important Built-in Functions
+| Function | Purpose |
+|----------|----------|
+| concat() | Combine lists |
+| element() | Get item by index |
+| length() | Count elements |
+| lookup() | Get value from map |
+| join() | Convert list to string |
