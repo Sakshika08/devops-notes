@@ -125,14 +125,14 @@ Tracks current infrastructure state.
 Terraform compares state file and code to determine changes.
 
 **Why Important?**
-Tracks created resources.
-Stores resource IDs/metadata.
-Required for terraform plan and terraform apply.
+- Tracks created resources.
+- Stores resource IDs/metadata.
+- Required for terraform plan and terraform apply.
 
 **Problems with Local State**
-Sensitive data may be exposed.
-Difficult collaboration.
-No proper locking.
+- Sensitive data may be exposed.
+- Difficult collaboration.
+- No proper locking.
 
 **Remote Backend** Stores state remotely.
 
@@ -141,8 +141,8 @@ Prevents multiple users from modifying state simultaneously.
 Implemented using DynamoDB.
 
 **Production Standard**
-S3 → State Storage
-DynamoDB → State Locking
+- S3 → State Storage
+- DynamoDB → State Locking
 
 ## 8. Plan
 Command: ``` terraform plan ```
@@ -217,3 +217,46 @@ Important Built-in Functions
 | length()  | Count elements  |
 | lookup()  | Get value from map  |
 | join()    | Convert list to string  |
+
+## 14. Provisioner 
+Executes scripts/commands after resource creation (or before destruction).
+
+###Types
+
+**local-exec**
+Runs on Terraform machine.
+
+Example: Run shell command, create log file.
+```
+  provisioner "local-exec" {
+    command = "echo Instance Created"
+  }
+```
+
+**remote-exec**
+Runs on target server (EC2/VM).
+
+Example: Install packages, configure server.
+```
+provisioner "remote-exec" {
+  inline = [
+    "sudo yum update -y",
+    "sudo yum install nginx -y"
+  ]
+}
+```
+
+**file**
+Copies files from local machine to remote server.
+```
+provisioner "file" {
+  source      = "app.conf"
+  destination = "/tmp/app.conf"
+}
+```
+
+**Quick Memory Trick**
+LRF
+- Local-exec → Local machine
+- Remote-exec → Remote server
+- File → File transfer
