@@ -210,10 +210,10 @@ provider "aws" {
 Remember: Used to create/skip resources based on a condition.
 
 Important Built-in Functions
-| Function | Purpose |
-|----------|----------|
-| concat() | Combine lists |
-| element() | Get item by index |
-| length() | Count elements |
-| lookup() | Get value from map |
-| join() | Convert list to string |
+| Function  | Purpose  |
+|---------- |---------- |
+| concat()  | Combine lists  |
+| element() | Get item by index  |
+| length()  | Count elements  |
+| lookup()  | Get value from map  |
+| join()    | Convert list to string  |
