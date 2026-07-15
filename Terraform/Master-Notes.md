@@ -290,7 +290,7 @@ resource "aws_instance" "example" {
 ```
 In this example, the count attribute of the aws_instance resource uses a conditional expression. If the create_instance variable is true, it creates one EC2 instance. If create_instance is false, it creates zero instances, effectively skipping resource creation.
 
-### Built-in Functions
+## 14. Built-in Functions
 Terraform provides a wide range of built-in functions that you can use within your configuration files (usually written in HashiCorp Configuration Language, or HCL) to manipulate and transform data. These functions help you perform various tasks when defining your infrastructure. Here are some commonly used built-in functions in Terraform:
 
 1. **concat(list1, list2, ...): Combines multiple lists into a single list.**
@@ -369,3 +369,87 @@ output "joined_string" {
 }
 ```
 These are just a few examples of the built-in functions available in Terraform. You can find more functions and detailed documentation in the official Terraform documentation, which is regularly updated to include new features and improvements
+
+## 15.Provisioners
+A Provisioner is used to execute scripts or commands after a resource is created (or before it's destroyed).
+
+Think of it as: Resource Creation → Provisioner Runs → Additional Configuration
+
+For example:
+Create an EC2 instance
+SSH into the instance
+Install Apache/Nginx
+Copy files
+
+All of this can be done using a provisioner.
+
+### Types of Provisioners
+**1. file Provisioner:**
+The file provisioner is used to copy files or directories from the local machine to a remote machine. This is useful for deploying configuration files, scripts, or other assets to a provisioned instance.
+
+Example:
+```
+resource "aws_instance" "example" {
+  ami           = "ami-0c55b159cbfafe1f0"
+  instance_type = "t2.micro"
+}
+
+provisioner "file" {
+  source      = "local/path/to/localfile.txt"
+  destination = "/path/on/remote/instance/file.txt"
+  connection {
+    type     = "ssh"
+    user     = "ec2-user"
+    private_key = file("~/.ssh/id_rsa")
+  }
+}
+```
+
+In this example, the ```file`` provisioner copies the ```localfile.txt``` from the local machine to the ```/path/on/remote/instance/file.txt``` location on the AWS EC2 instance using an SSH connection.
+
+
+**2. remote-exec Provisioner:**
+The remote-exec provisioner is used to run scripts or commands on a remote machine over SSH or WinRM connections. It's often used to configure or install software on provisioned instances.
+
+Example:
+```
+resource "aws_instance" "example" {
+  ami           = "ami-0c55b159cbfafe1f0"
+  instance_type = "t2.micro"
+}
+
+provisioner "remote-exec" {
+  inline = [
+    "sudo yum update -y",
+    "sudo yum install -y httpd",
+    "sudo systemctl start httpd",
+  ]
+
+  connection {
+    type        = "ssh"
+    user        = "ec2-user"
+    private_key = file("~/.ssh/id_rsa")
+    host        = aws_instance.example.public_ip
+  }
+}
+```
+In this example, the ```remote-exec``` provisioner connects to the AWS EC2 instance using SSH and runs a series of commands to update the package repositories, install Apache HTTP Server, and start the HTTP server.
+
+**3. local-exec Provisioner:**
+
+The local-exec provisioner is used to run scripts or commands locally on the machine where Terraform is executed. It is useful for tasks that don't require remote execution, such as initializing a local database or configuring local resources.
+
+Example:
+```
+resource "null_resource" "example" {
+  triggers = {
+    always_run = "${timestamp()}"
+  }
+
+  provisioner "local-exec" {
+    command = "echo 'This is a local command'"
+  }
+}
+```
+In this example, a ```null_resource``` is used with a ```local-exec``` provisioner to run a simple local command that echoes a message to the console whenever Terraform is applied or refreshed. The ```timestamp()``` function ensures it runs each time.
+
