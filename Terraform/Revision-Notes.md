@@ -1,24 +1,24 @@
 ## Why Infrastructure as Code (IaC)?
 
 **Before IaC:**
-Manual server configuration
-No version control
-Documentation-driven processes
-Limited automation
-Slow provisioning
-More human errors
+- Manual server configuration
+- No version control
+- Documentation-driven processes
+- Limited automation
+- Slow provisioning
+- More human errors
 
 **Benefits of IaC:**
-Automation
-Version control
-Faster deployments
-Consistency
-Reduced errors
-Key Terraform Concepts
+- Automation
+- Version control
+- Faster deployments
+- Consistency
+- Reduced errors
+  
+# Key Terraform Concepts
 
 ## 1. Provider
-Plugin used to interact with cloud platforms (AWS, Azure, GCP).
-Defines where Terraform creates resources.
+Plugin used to interact with cloud platforms (AWS, Azure, GCP). Defines where Terraform creates resources.
 
 Example:
 ```hcl
@@ -46,10 +46,11 @@ terraform {
 ## 2. Resource
 Actual infrastructure component managed by Terraform.
 Examples:
-EC2 Instance
-S3 Bucket
-Azure VM
-VPC
+- EC2 Instance
+- S3 Bucket
+- Azure (VM, VNET)
+- VPC
+  
 ```hcl
 resource "aws_instance" "web" {
   ami           = "ami-xxx"
@@ -57,30 +58,30 @@ resource "aws_instance" "web" {
 }
 ```
 ## 3. Module
-Reusable collection of Terraform code. Helps avoid duplication.
+Reusable collection of Terraform code. Helps avoid duplication.  
 Benefits:
-Reusability
-Modularity
-Maintainability
-Consistency
-Scalability
-Versioning
+- Reusability
+- Modularity
+- Maintainability
+- Consistency
+- Scalability
+- Versioning
 
 Types:
-Root Module
-Child Module
-Terraform Registry Modules
+- Root Module
+- Child Module
+- Terraform Registry Modules
 
 ## 4. Configuration Files
 Terraform files use .tf extension.
 Common file names:
-main.tf
-variables.tf
-outputs.tf
-providers.tf
+main.tf  
+variables.tf  
+outputs.tf  
+providers.tf  
 
 ## 5. Variables
-Input Variable: Used to receive values.
+**Input Variable:** Used to receive values.
 ```hcl
 variable "instance_type" {
   type    = string
@@ -88,13 +89,9 @@ variable "instance_type" {
 }
 ```
 
-Usage:
-```hcl
-instance_type = var.instance_type
-```
+Usage: ```instance_type = var.instance_type```
 
-Output Variable
-Used to expose resource values.
+**Output Variable**: Used to expose resource values.
 ```hcl
 output "instance_id" {
   value = aws_instance.web.id
@@ -102,27 +99,23 @@ output "instance_id" {
 ```
 ## 6. Terraform tfvars
 **variables.tf** defines variables, while **terraform.tfvars** provides actual values for those variables during deployment.
-```hcl
-variable "instance_type" {}
-```
+```variable "instance_type" {}```
 
 Apply with custom tfvars:
-```hcl
-terraform apply -var-file=dev.tfvars
-```
+``` terraform apply -var-file=dev.tfvars ```
 
 Advantages:
-Separation of code and configuration
-Environment-specific values
-Reusability
-Team collaboration
+- Separation of code and configuration
+- Environment-specific values
+- Reusability
+- Team collaboration
 
 ## 7. State File
 File: ``` terraform.tfstate ```
 
 Purpose:
-Tracks current infrastructure state.
-Terraform compares state file and code to determine changes.
+Tracks current infrastructure state.  
+Terraform compares state file and code to determine changes.  
 
 **Why Important?**
 - Tracks created resources.
@@ -148,7 +141,7 @@ Implemented using DynamoDB.
 Command: ``` terraform plan ```
 
 Purpose:
-Preview changes before deployment.
+Preview changes before deployment.  
 Shows create/update/delete actions.
 
 ## 9. Apply
@@ -174,21 +167,21 @@ terraform workspace select dev
 Stores state remotely instead of locally.
 
 Examples:
-AWS S3
-Azure Blob Storage
-Terraform Cloud
+- AWS S3
+- Azure Blob Storage
+- Terraform Cloud
 
 Benefits:
-Collaboration
-State locking
-Security
-Backup
-Multiple Providers
+- Collaboration
+- State locking
+- Security
+- Backup
+- Multiple Providers
 
 ## 12. Multi-Region Deployment
-Use provider alias to deploy resources in multiple AWS regions.
-Define multiple providers with alias.
-Specify provider in resource using provider = aws.alias_name.
+Use provider alias to deploy resources in multiple AWS regions.  
+Define multiple providers with alias.  
+Specify provider in resource using provider = aws.alias_name.  
 
 Remember: Alias = Same cloud, different regions.
 
