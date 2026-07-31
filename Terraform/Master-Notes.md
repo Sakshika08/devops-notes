@@ -8,6 +8,9 @@ Before the advent of IaC:
 - **Limited Automation** – Increased operational effort and human error.
 - **Slow Provisioning** – Infrastructure deployment was time-consuming.
 
+## Terraform
+Terraform is Infrastructure as Code (IaC) tool that allows us to define, provision, and manage infrastructure using declarative configuration files instead of manually creating resources through the cloud console. It helps automate infrastructure management in a consistent, repeatable, and version-controlled manner across cloud providers such as AWS, Azure, and GCP.
+
 ## key terminology and concept
 
 ## 1. Provider: 
@@ -16,6 +19,10 @@ A provider is a plugin for Terraform that defines and manages resources for a sp
 **Different Ways to Configure Providers in Terraform**
 #### In the Root Module
 This is the most common way to configure providers. The provider configuration block is placed in the root module of the Terraform configuration. This makes the provider configuration available to all the resources in the configuration.
+
+**Initialize** - Install the plugins Terraform needs to manage the infrastructure.
+**Plan** - Preview the changes Terraform will make to match your configuration.
+**Apply** - Make the planned changes.
 
  ```hcl
 provider "aws" {
