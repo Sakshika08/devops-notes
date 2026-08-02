@@ -15,6 +15,36 @@ Terraform is Infrastructure as Code (IaC) tool that allows us to define, provisi
 
 ## 1. Provider: 
 A provider is a plugin for Terraform that defines and manages resources for a specific cloud or infrastructure platform. Examples of providers include AWS, Azure, Google Cloud, and many others. You configure providers in your Terraform code to interact with the desired infrastructure platform.
+providers to manage your resources by calling your cloud provider's APIs. 
+
+```
+provider "aws" {
+  region = "ap-south-1"
+}
+```
+Provider Authentication Methods (AWS)
+Terraform --- IAM Role---AWS
+
+Benefits:
+Temporary credentials
+No hardcoded secrets
+Automatic credential rotation
+
+**The ```terraform``` block**
+```
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.92"
+    }
+  }
+
+  required_version = ">= 1.2"
+}
+```
+source - Tells Terraform where to download the provider from.
+version - Specifies which provider versions are allowed.
 
 **Different Ways to Configure Providers in Terraform**
 #### In the Root Module
