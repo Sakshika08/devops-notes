@@ -14,6 +14,8 @@
 - Faster deployments
 - Consistency
 - Reduced errors
+
+Terraform is HashiCorp's Infrastructure as Code tool used to provision and manage infrastructure through declarative configuration files.
   
 # Key Terraform Concepts
 
@@ -114,8 +116,9 @@ Advantages:
 File: ``` terraform.tfstate ```
 
 Purpose:
-Tracks current infrastructure state.  
-Terraform compares state file and code to determine changes.  
+- Tracks current infrastructure state.  
+- Maps Terraform resources to real-world resources.
+- Terraform compares the state file with the configuration code to determine what needs to be created, updated, or destroyed.  
 
 **Why Important?**
 - Tracks created resources.
