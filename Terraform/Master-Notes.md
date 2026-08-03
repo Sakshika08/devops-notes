@@ -46,20 +46,15 @@ terraform {
 ```
 ```source``` - Tells Terraform where to download the provider from.  
 ```version``` - Specifies which provider versions are allowed.  
-```~>```` operator is called the pessimistic version constraint. It allows Terraform to use newer compatible versions while preventing upgrades that might introduce breaking changes.  
+```~>``` operator is called the pessimistic version constraint. It allows Terraform to use newer compatible versions while preventing upgrades that might introduce breaking changes.  
 For example, The string ~> 5.92 means your configuration supports any version of the provider with a major version of 5 and a minor version greater than or equal to 92.
 
 **Terraform Block**: Defines what provider and Terraform versions should be used.
-
 **Provider Block**: Defines how Terraform connects to the provider (AWS, Azure, GCP, etc.).
 
-**Different Ways to Configure Providers in Terraform**
+### Different Ways to Configure Providers in Terraform
 #### In the Root Module
 This is the most common way to configure providers. The provider configuration block is placed in the root module of the Terraform configuration. This makes the provider configuration available to all the resources in the configuration.
-
-**Initialize** - Install the plugins Terraform needs to manage the infrastructure.
-**Plan** - Preview the changes Terraform will make to match your configuration.
-**Apply** - Make the planned changes.
 
  ```hcl
 provider "aws" {
@@ -139,11 +134,50 @@ resource "azurerm_virtual_machine" "example" {
   size = "Standard_A1"
 }
 ```
+## 2. Data sources
+You can use data blocks to query your cloud provider for information about other resources. This data source fetches data about the latest AWS AMI that matches the filter, so you do not have to hardcode the AMI ID into your configuration. 
+Data sources help keep your configuration dynamic and avoid hardcoded values that can become stale. 
+Even though the data source is not an actual resource, Terraform tracks it in your state file.  
+main.tf
+```
+data "aws_ami" "ubuntu" {
+  most_recent = true
 
-## 2. Resource
+  filter {
+    name = "name"
+    values = ["ubuntu/images/hvm-ssd-gp3/ubuntu-noble-24.04-amd64-server-*"]
+  }
+
+  owners = ["099720109477"] # Canonical
+}
+```
+In this example, the ```data.aws_ami.ubuntu``` data source loads an AMI for the most recent Ubuntu Noble Numbat release in the region configured for your provider.
+
+## 3. Resource
 A resource is a specific infrastructure component that you want to create and manage using Terraform. Resources can include virtual machines, databases, storage buckets, network components, and more. Each resource has a type and configuration parameters that you define in your Terraform code.
+main.tf
+```
+resource "aws_instance" "app_server" {
+  ami           = data.aws_ami.ubuntu.id
+  instance_type = "t2.micro"
 
-## 3. Module
+  tags = {
+    Name = "learn-terraform"
+  }
+}
+```
+The first line of a resource block declares a resource type and resource name. 
+The tags argument sets the EC2 instance's name. 
+
+## 4. Initialize your workspace
+Initialize your Terraform workspace with the ```terraform init``` command. Terraform downloads and installs the providers defined in your configuration in your current working directory. Install the plugins Terraform needs to manage the infrastructure.  
+Terraform downloaded the provider and installed it in a hidden ```.terraform``` subdirectory of your current working directory. Terraform also created a file named ```.terraform.lock.hcl``` which specifies the exact provider versions used with your workspace, ensuring consistency between runs.
+
+## 5. Create infrastructure
+**Plan** - Preview the changes Terraform will make to match your configuration.
+**Apply** - Make the planned changes.
+
+## 4. Module
 A Terraform module is a reusable and self-contained collection of Terraform configuration files that groups related resources together. Modules help organize infrastructure code, improve reusability, and reduce duplication. Terraform provides a root module by default, and additional child modules can be created or sourced from the Terraform Registry.
 Benefits of Modules:
 
@@ -225,6 +259,7 @@ terraform apply -var-file=dev.tfvars
 
 ## 7. State File 
 Terraform maintains a state file (often named terraform.tfstate) that keeps track of the current state of your infrastructure. This file is crucial for Terraform to understand what resources have been created and what changes need to be made during updates.
+When you use Terraform to plan and apply changes to your workspace's infrastructure, Terraform compares the last known state in your state file, your current configuration, and data returned by your providers to create its execution plan.
 This file, often named ```terraform.tfstate```, is a JSON or HCL (HashiCorp Configuration Language) formatted
 
 ### Advantages of Terraform State File:
