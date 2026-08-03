@@ -22,15 +22,16 @@ provider "aws" {
   region = "ap-south-1"
 }
 ```
-Provider Authentication Methods (AWS)
-Terraform --- IAM Role---AWS
+### Provider Authentication Methods (AWS)
+The most secure way to authenticate Terraform with AWS is by using IAM Roles with temporary credentials instead of long-lived access keys. Terraform can assume an IAM Role and obtain temporary credentials from AWS STS, eliminating the need to store AWS access keys and secret keys.
 
-Benefits:
-Temporary credentials
-No hardcoded secrets
-Automatic credential rotation
+### The ```terraform``` block
+**Responsibilities**
+- Specifies required Terraform version  
+- Specifies required providers  
+- Defines backend configuration  
+- Controls Terraform behavior  
 
-**The ```terraform``` block**
 ```
 terraform {
   required_providers {
@@ -43,8 +44,14 @@ terraform {
   required_version = ">= 1.2"
 }
 ```
-source - Tells Terraform where to download the provider from.
-version - Specifies which provider versions are allowed.
+```source``` - Tells Terraform where to download the provider from.  
+```version``` - Specifies which provider versions are allowed.  
+```~>```` operator is called the pessimistic version constraint. It allows Terraform to use newer compatible versions while preventing upgrades that might introduce breaking changes.  
+For example, The string ~> 5.92 means your configuration supports any version of the provider with a major version of 5 and a minor version greater than or equal to 92.
+
+**Terraform Block**: Defines what provider and Terraform versions should be used.
+
+**Provider Block**: Defines how Terraform connects to the provider (AWS, Azure, GCP, etc.).
 
 **Different Ways to Configure Providers in Terraform**
 #### In the Root Module
