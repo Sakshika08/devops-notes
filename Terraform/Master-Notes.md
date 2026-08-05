@@ -199,7 +199,8 @@ Terraform uses configuration files (often with a .tf extension) to define the de
 Variables in Terraform are placeholders for values that can be passed into your configurations. They make your code more flexible and reusable by allowing you to define values outside of your code and pass them in when you apply the Terraform configuration.
 
 **Input Variables**
-Input variables are used to parameterize your Terraform configurations. They allow you to pass values into your modules or configurations from the outside. Input variables can be defined within a module or at the root level of your configuration. Here's how you define an input variable:
+Input variables are used to parameterize your Terraform configurations. They allow you to pass values into your modules or configurations from the outside. Input variables can be defined within a module or at the root level of your configuration. Here's how you define an input variable. These input variables allow you to update the EC2 instance's name and type without modifying your configuration files each time. :  
+variable.tf
 ```hcl
 variable "example_var" {
   description = "An example input variable"
@@ -207,7 +208,7 @@ variable "example_var" {
   default     = "default_value"
 }
 ```
-You can then use the input variable within your module or configuration like this:
+You can then use the input variable within your module or ```main.tf``` configuration like this:
 ```hcl
 resource "example_resource" "example" {
   name = var.example_var
@@ -217,8 +218,8 @@ resource "example_resource" "example" {
 You reference the input variable using var.example_var.
 
 **Output Variables**
-Output variables allow you to expose values from your module or configuration, making them available for use in other parts of your Terraform setup. Here's how you define an output variable:
-
+Output variables allow you to expose values from your module or configuration, making them available for use in other parts of your Terraform setup. Here's how you define an output variable:  
+outputs.tf
 ```hcl
 output "example_output" {
   description = "An example output variable"
