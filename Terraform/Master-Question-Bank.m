@@ -93,15 +93,19 @@ module "ec2" {
 ```
 Here: ```module.vpc.subnet_id``` comes from the VPC module output and is passed into the EC2 module.
 
-### Q What happens if you forget to declare a variable in the child module?
-Answer
+### Q: What happens if you forget to declare a variable in the child module?
+
+**Answer:**
+
 Terraform throws an error because the variable is not defined in that module.
-Example:
-```
+
+**Example:**
+
+```hcl
 resource "aws_vpc" "this" {
   cidr_block = var.vpc_cidr
 }
 ```
-but: ``` variable "vpc_cidr" {}``` is missing.
+But variable "vpc_cidr" {} is missing.
 
 Terraform fails during validation or plan.
