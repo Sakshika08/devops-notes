@@ -44,3 +44,10 @@ while DynamoDB is used for state locking to prevent multiple users from modifyin
 Q: What is the difference between Terraform OSS and HCP Terraform?
 Terraform OSS is the open-source Infrastructure as Code engine used to provision and manage infrastructure. 
 HCP Terraform is HashiCorp's managed platform that provides additional capabilities such as remote state management, collaboration, governance, policy enforcement, and remote execution of Terraform runs. The actual infrastructure provisioning is still performed by Terraform.
+
+Why is vpc_cidr defined both in the root module and child module?
+Answer
+
+Terraform modules have their own scope. Variables declared in the root module are not automatically available inside child modules.
+
+The root module receives the value and passes it to the child module.
