@@ -106,6 +106,57 @@ resource "aws_vpc" "this" {
   cidr_block = var.vpc_cidr
 }
 ```
-But variable "vpc_cidr" {} is missing.
-
+but: `variable "vpc_cidr" {}` is missing.
 Terraform fails during validation or plan.
+
+### Q. Why is the provider defined in the root module and not in child modules?
+Answer
+Best practice is to configure providers in the root module and pass them to child modules.
+This ensures:
+Centralized provider management
+Better reusability
+Easier multi-region deployments
+
+### Q. Difference between Variables and Outputs?
+Variables bring data into a module, while outputs expose data from a module.
+
+### Q. How is module communication achieved?
+Answer
+Modules cannot directly communicate with each other.
+Communication happens through:
+Output from Module A
+Variable in Module B
+Example: `module.vpc.subnet_id`
+and passed into:
+```
+module "ec2" {
+  subnet_id = module.vpc.subnet_id
+}
+```
+
+### Q. Explain the flow of your Terraform project.
+Answer
+User provides values in terraform.tfvars
+Root module variables receive the values
+Root main.tf calls child modules
+Child modules create resources
+Child modules return outputs
+Root module consumes those outputs if required
+
+Example flow:
+```
+terraform.tfvars
+        ↓
+variables.tf
+        ↓
+main.tf
+        ↓
+VPC Module
+        ↓
+Output subnet_id
+        ↓
+EC2 Module
+        ↓
+EC2 Created
+```
+Root module controls the deployment, child modules contain reusable resource code, variables pass data into modules, and outputs pass data out of modules. This makes Terraform code modular, reusable, and maintainable.
