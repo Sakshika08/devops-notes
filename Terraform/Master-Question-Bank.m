@@ -45,9 +45,63 @@ Q: What is the difference between Terraform OSS and HCP Terraform?
 Terraform OSS is the open-source Infrastructure as Code engine used to provision and manage infrastructure. 
 HCP Terraform is HashiCorp's managed platform that provides additional capabilities such as remote state management, collaboration, governance, policy enforcement, and remote execution of Terraform runs. The actual infrastructure provisioning is still performed by Terraform.
 
-Why is vpc_cidr defined both in the root module and child module?
+## Q. Why is vpc_cidr defined both in the root module and child module?
 Answer
-
 Terraform modules have their own scope. Variables declared in the root module are not automatically available inside child modules.
-
 The root module receives the value and passes it to the child module.
+```
+module "vpc" {
+  source   = "./modules/vpc"
+  vpc_cidr = var.vpc_cidr
+}
+```
+The child module must declare: ```variable "vpc_cidr" {}``` to receive that value.
+
+## Q. Can a child module directly access variables from the root module?
+Answer
+No. A child module can only access values explicitly passed by the parent module.
+❌ Not allowed
+```
+# child module
+cidr_block = var.root_vpc_cidr
+```
+Correct:
+```
+module "vpc" {
+  source   = "./modules/vpc"
+  vpc_cidr = var.vpc_cidr
+}
+```
+### Q Why do we use modules in Terraform?
+Answer
+Modules improve:
+Reusability
+Maintainability
+Standardization
+Code organization
+Instead of writing VPC code repeatedly across projects, we create a reusable VPC module and call it wherever needed.
+
+### 4. How do you pass values from one module to another?
+Answer
+Using outputs from one module and variables in another module.
+Example:
+```
+module "ec2" {
+  source        = "./modules/ec2"
+  subnet_id     = module.vpc.subnet_id
+}
+```
+Here: ```module.vpc.subnet_id``` comes from the VPC module output and is passed into the EC2 module.
+
+### Q What happens if you forget to declare a variable in the child module?
+Answer
+Terraform throws an error because the variable is not defined in that module.
+Example:
+```
+resource "aws_vpc" "this" {
+  cidr_block = var.vpc_cidr
+}
+```
+but: ``` variable "vpc_cidr" {}``` is missing.
+
+Terraform fails during validation or plan.
