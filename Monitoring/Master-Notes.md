@@ -1084,3 +1084,6 @@ Find Service with label app=my-app
 Scrape every 30 seconds
 
 ServiceMonitor is a Kubernetes Custom Resource provided by Prometheus Operator that defines how Prometheus should discover and scrape Kubernetes Services.
+
+<img width="975" height="469" alt="image" src="https://github.com/user-attachments/assets/d9dce57c-5aa6-4368-bf83-a37d38b14d8b" />
+
