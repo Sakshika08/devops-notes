@@ -1,6 +1,5 @@
 # Prometheus Basics
 
-## What is Prometheus?  
 Prometheus is an open-source monitoring and alerting system used to collect, store, query, and monitor metrics from applications, servers, containers, and Kubernetes clusters.  
 Prometheus stores data as time-series information and allows querying using PromQL.
 
@@ -214,6 +213,8 @@ avg by(instance)(cpu_usage)
 ### What are Labels in Prometheus?
 
 Labels are key-value pairs attached to metrics that provide dimensional information used for filtering, grouping, and aggregation.
+<img width="975" height="406" alt="image" src="https://github.com/user-attachments/assets/873dc5c7-0d90-4a93-8ee0-e5dda24aeec2" />
+
 
 ---
 
@@ -239,9 +240,11 @@ localhost:9090
 
 Prometheus periodically contacts these endpoints and collects metrics.
 How to Check Targets
-Prometheus UI: Status → Target Health → Query: up → Output:
+Prometheus UI:  → Target Health → Query: up → Output:
 1 = Target is healthy and being scraped
 0 = Target is down or scrape failed
+<img width="975" height="233" alt="image" src="https://github.com/user-attachments/assets/a381b899-8bb7-4ad5-b27f-44b8e91f2a6f" />
+
 
 ---
 
@@ -519,6 +522,7 @@ Target is healthy.
 ```promql
 count(up)
 ```
+<img width="975" height="473" alt="image" src="https://github.com/user-attachments/assets/90f5cc9d-2ceb-495f-8e11-1a0851f5c8cc" />
 
 ---
 
@@ -543,6 +547,7 @@ avg(up)
 ```promql
 rate(http_requests_total[5m])
 ```
+<img width="975" height="447" alt="image" src="https://github.com/user-attachments/assets/a66f2a2d-a7a2-40d8-b5d2-3cd44d37fa5b" />
 
 Calculates per-second increase of a counter.
 
