@@ -68,7 +68,6 @@ Examples:
 
 ### Prometheus Server
 Responsible for:
-
 - Scraping targets
 - Storing metrics
 - Running PromQL queries
@@ -77,9 +76,7 @@ Responsible for:
 ---
 
 ### Grafana
-
 Responsible for:
-
 - Visualization
 - Dashboards
 - Reporting
@@ -88,9 +85,7 @@ Responsible for:
 ---
 
 ### Alertmanager
-
 Responsible for:
-
 - Sending alerts
 - Alert grouping
 - Alert routing
