@@ -1,50 +1,7 @@
-# Prometheus & Grafana Complete DevOps Notes
-
-## Learning Roadmap
-
-### Phase 1: Learn Prometheus
-
-Understand:
-
-- Metrics
-- Labels
-- Targets
-- Scraping
-- Exporters
-- PromQL
-- Alerting
-- Service Discovery
-
-### Phase 2: Learn Grafana
-
-Understand:
-
-- Data Sources
-- Dashboards
-- Panels
-- Variables
-- Alerts
-
-### Phase 3: Kubernetes Monitoring
-
-Understand:
-
-- kube-prometheus-stack
-- ServiceMonitor
-- PodMonitor
-- Alertmanager
-- Monitoring Kubernetes Clusters
-
-> Most 3-5 years DevOps interviews focus heavily on Kubernetes monitoring.
-
----
-
 # Prometheus Basics
 
-## What is Prometheus?
-
-Prometheus is an open-source monitoring and alerting system used to collect, store, query, and monitor metrics from applications, servers, containers, and Kubernetes clusters.
-
+## What is Prometheus?  
+Prometheus is an open-source monitoring and alerting system used to collect, store, query, and monitor metrics from applications, servers, containers, and Kubernetes clusters.  
 Prometheus stores data as time-series information and allows querying using PromQL.
 
 ### Key Features
@@ -62,15 +19,13 @@ Prometheus stores data as time-series information and allows querying using Prom
 
 ## Why Do We Need Monitoring?
 
-Without monitoring:
-
+Without monitoring:  
 - Server failures go unnoticed
 - Applications can be unavailable
 - Performance issues remain undetected
 - Resource exhaustion can cause outages
 
-Monitoring helps identify:
-
+Monitoring helps identify:  
 - CPU bottlenecks
 - Memory leaks
 - Disk utilization issues
@@ -98,10 +53,8 @@ Grafana AlertMgr Storage
 
 ## Components
 
-### Exporters
-
-Exporters expose metrics in a Prometheus-compatible format.
-
+### Exporters  
+Exporters expose metrics in a Prometheus-compatible format.  
 Examples:
 
 - Node Exporter
@@ -114,7 +67,6 @@ Examples:
 ---
 
 ### Prometheus Server
-
 Responsible for:
 
 - Scraping targets
@@ -1088,3 +1040,52 @@ Application --> Monitoring Tool
 Examples:
 CloudWatch
 Datadog Agent
+
+---
+
+# Service Discovery vs ServiceMonitor
+## Service Discovery 
+Service Discovery is Prometheus's mechanism for automatically finding targets that expose metrics.
+Without Service Discovery Problem:  
+New servers require manual updates
+Scaling is difficult
+Kubernetes pods change IPs frequently
+
+With Service Discovery  
+Prometheus automatically discovers targets.
+Example:
+```
+scrape_configs:
+  - job_name: kubernetes-pods
+    kubernetes_sd_configs:
+      - role: pod
+```
+Prometheus continuously asks Kubernetes: Show me all pods exposing metrics and automatically updates targets.
+
+## ServiceMonitor
+ServiceMonitor is a Kubernetes Custom Resource (CRD) created by the Prometheus Operator.  
+It defines:
+Which Service should be monitored  
+Which port should be scraped  
+How frequently it should be scraped  
+
+Example ServiceMonitor:
+```
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: my-app-monitor
+spec:
+  selector:
+    matchLabels:
+      app: my-app
+
+  endpoints:
+  - port: http
+    interval: 30s
+```
+Meaning: 
+Find Service with label app=my-app
+Scrape every 30 seconds
+
+ServiceMonitor is a Kubernetes Custom Resource provided by Prometheus Operator that defines how Prometheus should discover and scrape Kubernetes Services.
