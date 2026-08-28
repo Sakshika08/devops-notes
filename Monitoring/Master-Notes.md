@@ -274,9 +274,13 @@ Labels are key-value pairs attached to metrics that provide dimensional informat
 
 ## What is a Target?
 
-A target is an endpoint from which Prometheus collects metrics.
-
+A target is an endpoint (application, server, container, or service) from which Prometheus collects metrics.
 Examples:
+Prometheus server itself
+Node Exporter on an EC2 instance
+Kubernetes API Server
+MySQL Exporter
+Redis Exporter
 
 ```text
 localhost:9090
@@ -287,6 +291,10 @@ localhost:9090
 ```
 
 Prometheus periodically contacts these endpoints and collects metrics.
+How to Check Targets
+Prometheus UI: Status → Target Health → Query: up → Output:
+1 = Target is healthy and being scraped
+0 = Target is down or scrape failed
 
 ---
 
@@ -313,8 +321,7 @@ is the target.
 
 ## What is Scraping?
 
-Scraping is the process of collecting metrics from targets.
-
+Scraping is the process by which Prometheus pulls metrics from a target's /metrics endpoint at regular intervals.
 Prometheus periodically sends HTTP requests to targets.
 
 Example:
@@ -327,6 +334,13 @@ Prometheus
      ▼
 Node Exporter
 ```
+Node Exporter responds:
+```
+CPU = 25%
+Memory = 60%
+Disk = 45%
+```
+Prometheus stores these values in its database.
 
 ---
 
@@ -338,17 +352,12 @@ Default:
 scrape_interval: 15s
 ```
 
-Meaning:
-
-Prometheus will collect metrics every 15 seconds.
+Meaning: Prometheus will collect metrics every 15 seconds.
 
 ---
 
 ## Interview Question
 
-### What is Scraping?
-
-Scraping is the process through which Prometheus collects metrics from configured targets at regular intervals.
 
 ---
 
@@ -357,9 +366,8 @@ Scraping is the process through which Prometheus collects metrics from configure
 ## What is an Exporter?
 
 An exporter collects metrics from a system and exposes them in Prometheus format.
-
-Prometheus cannot directly understand every technology.
-
+Prometheus cannot directly understand every technology. Prometheus understands metrics only in a specific format.
+Most operating systems and applications don't expose metrics in that format by default.
 Exporters bridge this gap.
 
 ---
@@ -369,7 +377,6 @@ Exporters bridge this gap.
 ### Node Exporter
 
 Monitors:
-
 ```text
 CPU
 Memory
@@ -417,8 +424,25 @@ Monitors Java applications.
 ## Interview Question
 
 ### What is Node Exporter?
-
 Node Exporter is a Prometheus exporter that exposes Linux operating system metrics such as CPU, memory, disk, filesystem, and network statistics.
+
+### How Does Service Discovery Work?
+Instead of manually adding every target IP address, Prometheus can automatically discover targets IP addresses and ports (like Kubernetes pods, AWS EC2 instances, or Consul nodes) by querying infrastructure APIs to update the list of scrape targets dynamically.
+```text
+Prometheus
+      ↓
+AWS API
+      ↓
+Discovers:
+EC2-1
+EC2-2
+EC2-3
+```
+
+Prometheus begins scraping them automatically.
+
+Interview Answer:
+Service discovery automatically finds targets from platforms like Kubernetes, AWS EC2, Docker, or Consul so Prometheus can scrape them without manually updating configurations.
 
 ---
 
@@ -467,9 +491,8 @@ Target is healthy
 # Pull Model
 
 ## How Prometheus Collects Data
-
 Prometheus uses a pull architecture.
-
+Prometheus initiates the connection.
 ```text
 Prometheus ----> Target
 ```
@@ -626,8 +649,21 @@ PromQL is Prometheus Query Language used to filter, aggregate, and analyze time-
 ## What is Grafana?
 
 Grafana is an open-source visualization platform used to display monitoring data.
-
 Grafana does not store metrics itself.
+```
+Node Exporter
+      ↓
+Prometheus Scrapes
+      ↓
+Metrics Stored
+      ↓
+Grafana Executes PromQL
+      ↓
+Displays Dashboard
+```
+Example:
+Grafana panel query: `process_resident_memory_bytes` Grafana sends that query to Prometheus.  
+Prometheus returns: `114028544` Grafana converts that into a graph.
 
 It reads metrics from data sources such as:
 
@@ -639,9 +675,8 @@ It reads metrics from data sources such as:
 
 ---
 
-# Data Sources
-
-## What is a Data Source?
+# Grafana Components
+## Data Sources
 
 A system from which Grafana retrieves data.
 
@@ -662,9 +697,7 @@ Prometheus
 
 ---
 
-# Dashboards
-
-## What is a Dashboard?
+## Dashboards
 
 A dashboard is a collection of visualizations.
 
@@ -681,11 +714,9 @@ Infrastructure Dashboard
 
 ---
 
-# Panels
+## Panels
 
-## What is a Panel?
-
-A panel is a single visualization within a dashboard.
+A panel is a single visualization or graph within a dashboard.
 
 Examples:
 
@@ -694,6 +725,36 @@ Examples:
 - Table
 - Pie Chart
 - Heat Map
+
+Grafana doesn't store monitoring data. It connects to Prometheus as a data source, executes PromQL queries, retrieves metrics, and displays them in dashboards and graphs
+
+## Complete End-to-End Flow
+
+```
+EC2 Server
+     │
+     ▼
+Node Exporter
+(exposes metrics)
+     │
+     ▼
+http://server:9100/metrics
+     │
+     ▼
+Prometheus
+(scrapes every 15s)
+     │
+     ▼
+Time-Series Database
+(metric + labels + timestamp + value)
+     │
+     ▼
+Grafana
+(PromQL Queries)
+     │
+     ▼
+Dashboards & Alerts
+```
 
 ---
 
@@ -936,7 +997,7 @@ An open-source monitoring and alerting system that stores metrics as time-series
 ---
 
 ## Why is Prometheus called a Time-Series Database?
-
+Time series: A metric stored over time.
 Because it stores:
 
 ```text
@@ -1008,3 +1069,22 @@ A Kubernetes CRD used by Prometheus Operator to scrape metrics directly from Pod
 ## What is kube-prometheus-stack?
 
 A Helm-based monitoring stack that installs Prometheus, Grafana, Alertmanager, Node Exporter, kube-state-metrics, and Prometheus Operator in Kubernetes.
+
+---
+
+## Push vs Pull
+### Pull
+Prometheus --> Target  
+
+Advantages:
+
+Target health checking
+Better scalability
+Simpler configuration
+
+### Push
+Application --> Monitoring Tool
+
+Examples:
+CloudWatch
+Datadog Agent
