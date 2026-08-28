@@ -2,6 +2,7 @@
 
 Prometheus is an open-source monitoring and alerting system used to collect, store, query, and monitor metrics from applications, servers, containers, and Kubernetes clusters.  
 Prometheus stores data as time-series information and allows querying using PromQL.
+<img width="975" height="406" alt="image" src="https://github.com/user-attachments/assets/c4b28a63-854a-4e23-8372-e210f9b4ff39" />
 
 ### Key Features
 
@@ -54,8 +55,8 @@ Grafana AlertMgr Storage
 
 ### Exporters  
 Exporters expose metrics in a Prometheus-compatible format.  
-Examples:
 
+Examples:
 - Node Exporter
 - Blackbox Exporter
 - JMX Exporter
@@ -65,7 +66,8 @@ Examples:
 
 ---
 
-### Prometheus Server
+### Prometheus Server 
+
 Responsible for:
 - Scraping targets
 - Storing metrics
@@ -75,6 +77,7 @@ Responsible for:
 ---
 
 ### Grafana
+
 Responsible for:
 - Visualization
 - Dashboards
@@ -84,6 +87,7 @@ Responsible for:
 ---
 
 ### Alertmanager
+
 Responsible for:
 - Sending alerts
 - Alert grouping
@@ -91,7 +95,6 @@ Responsible for:
 - Alert suppression
 
 Supports:
-
 - Email
 - Slack
 - Microsoft Teams
@@ -101,12 +104,9 @@ Supports:
 
 # Metrics
 
-## What is a Metric?
-
 A metric is a measurable value representing the state of a system at a particular point in time.
 
 Examples:
-
 ```text
 CPU Usage
 Memory Usage
@@ -117,7 +117,6 @@ HTTP Requests
 ```
 
 Real examples:
-
 ```text
 node_cpu_seconds_total
 
@@ -131,7 +130,6 @@ http_requests_total
 ## Time-Series Data
 
 Prometheus stores metrics as time-series.
-
 Example:
 
 ```text
@@ -144,7 +142,6 @@ Time      CPU Usage
 ```
 
 Prometheus stores:
-
 ```text
 Metric Name
 Labels
@@ -153,7 +150,6 @@ Value
 ```
 
 Example:
-
 ```text
 node_cpu_usage{instance="server1"} 35
 ```
@@ -162,11 +158,7 @@ node_cpu_usage{instance="server1"} 35
 
 # Labels
 
-## What are Labels?
-
-Labels are key-value pairs attached to metrics.
-
-They help identify and filter data.
+Labels are key-value pairs attached to metrics. They help identify and filter data.
 
 Example:
 
@@ -178,7 +170,6 @@ up{job="node-exporter",instance="server1"} 1
 
 ```text
 job=node-exporter
-
 instance=server1
 ```
 
@@ -189,19 +180,16 @@ instance=server1
 Labels enable:
 
 ### Filtering
-
 ```promql
 up{job="node-exporter"}
 ```
 
 ### Grouping
-
 ```promql
 sum by(job)(up)
 ```
 
 ### Aggregation
-
 ```promql
 avg by(instance)(cpu_usage)
 ```
@@ -211,16 +199,11 @@ avg by(instance)(cpu_usage)
 ## Interview Question
 
 ### What are Labels in Prometheus?
-
 Labels are key-value pairs attached to metrics that provide dimensional information used for filtering, grouping, and aggregation.
-<img width="975" height="406" alt="image" src="https://github.com/user-attachments/assets/873dc5c7-0d90-4a93-8ee0-e5dda24aeec2" />
-
 
 ---
 
 # Targets
-
-## What is a Target?
 
 A target is an endpoint (application, server, container, or service) from which Prometheus collects metrics.
 Examples:
@@ -238,7 +221,7 @@ localhost:9090
 192.168.1.10:8080
 ```
 
-Prometheus periodically contacts these endpoints and collects metrics.
+Prometheus periodically contacts these endpoints and collects metrics.  
 How to Check Targets
 Prometheus UI:  → Target Health → Query: up → Output:
 1 = Target is healthy and being scraped
@@ -268,8 +251,6 @@ is the target.
 ---
 
 # Scraping
-
-## What is Scraping?
 
 Scraping is the process by which Prometheus pulls metrics from a target's /metrics endpoint at regular intervals.
 Prometheus periodically sends HTTP requests to targets.
@@ -313,8 +294,6 @@ Meaning: Prometheus will collect metrics every 15 seconds.
 
 # Exporters
 
-## What is an Exporter?
-
 An exporter collects metrics from a system and exposes them in Prometheus format.
 Prometheus cannot directly understand every technology. Prometheus understands metrics only in a specific format.
 Most operating systems and applications don't expose metrics in that format by default.
@@ -341,7 +320,6 @@ Load Average
 ### Blackbox Exporter
 
 Monitors:
-
 ```text
 HTTP
 HTTPS
@@ -430,11 +408,7 @@ Value:
 1
 ```
 
-Meaning:
-
-```text
-Target is healthy
-```
+Meaning: `Target is healthy`
 
 ---
 
@@ -491,8 +465,6 @@ Examples:
 
 # PromQL
 
-## What is PromQL?
-
 PromQL (Prometheus Query Language) is used to query Prometheus metrics.
 
 Similar to SQL for databases.
@@ -547,9 +519,8 @@ avg(up)
 ```promql
 rate(http_requests_total[5m])
 ```
-<img width="975" height="447" alt="image" src="https://github.com/user-attachments/assets/a66f2a2d-a7a2-40d8-b5d2-3cd44d37fa5b" />
-
 Calculates per-second increase of a counter.
+<img width="975" height="447" alt="image" src="https://github.com/user-attachments/assets/a66f2a2d-a7a2-40d8-b5d2-3cd44d37fa5b" />
 
 ---
 
@@ -598,8 +569,6 @@ PromQL is Prometheus Query Language used to filter, aggregate, and analyze time-
 
 # Grafana
 
-## What is Grafana?
-
 Grafana is an open-source visualization platform used to display monitoring data.
 Grafana does not store metrics itself.
 ```
@@ -632,11 +601,7 @@ It reads metrics from data sources such as:
 
 A system from which Grafana retrieves data.
 
-Example:
-
-```text
-Prometheus
-```
+Example: `Prometheus`
 
 Connection:
 
@@ -671,7 +636,6 @@ Infrastructure Dashboard
 A panel is a single visualization or graph within a dashboard.
 
 Examples:
-
 - Graph
 - Gauge
 - Table
@@ -712,8 +676,6 @@ Dashboards & Alerts
 
 # Variables
 
-## What are Variables?
-
 Variables make dashboards dynamic.
 
 Example:
@@ -726,16 +688,11 @@ server3
 
 Instead of creating multiple dashboards.
 
-Use:
-
-```text
-$instance
-```
+Use: `$instance`
 
 ---
 
 ## Benefits
-
 - Reusable dashboards
 - Easier filtering
 - Dynamic visualization
@@ -748,14 +705,9 @@ $instance
 
 Alerts notify teams when thresholds are breached.
 
-Example:
-
-```text
-CPU > 80%
-```
+Example: `CPU > 80% `
 
 Actions:
-
 - Email
 - Slack
 - Teams
@@ -870,17 +822,9 @@ Prometheus
 
 ## Why ServiceMonitor?
 
-Without ServiceMonitor:
+Without ServiceMonitor: Manual target configuration
 
-```text
-Manual target configuration
-```
-
-With ServiceMonitor:
-
-```text
-Automatic discovery
-```
+With ServiceMonitor: Automatic discovery
 
 ---
 
@@ -908,11 +852,7 @@ Prometheus
 
 ### ServiceMonitor
 
-Monitors:
-
-```text
-Services
-```
+Monitors: Services
 
 Example:
 
@@ -925,14 +865,9 @@ Backend Service
 
 ### PodMonitor
 
-Monitors:
-
-```text
-Individual Pods
-```
+Monitors individual Pods
 
 Example:
-
 ```text
 nginx-pod
 api-pod
@@ -949,7 +884,7 @@ An open-source monitoring and alerting system that stores metrics as time-series
 ---
 
 ## Why is Prometheus called a Time-Series Database?
-Time series: A metric stored over time.
+Time series: A metric stored over time.  
 Because it stores:
 
 ```text
@@ -1029,16 +964,15 @@ A Helm-based monitoring stack that installs Prometheus, Grafana, Alertmanager, N
 Prometheus --> Target  
 
 Advantages:
-
-Target health checking
-Better scalability
-Simpler configuration
+Target health checking  
+Better scalability  
+Simpler configuration  
 
 ### Push
 Application --> Monitoring Tool
 
 Examples:
-CloudWatch
+CloudWatch, 
 Datadog Agent
 
 ---
@@ -1089,6 +1023,3 @@ Find Service with label app=my-app
 Scrape every 30 seconds
 
 ServiceMonitor is a Kubernetes Custom Resource provided by Prometheus Operator that defines how Prometheus should discover and scrape Kubernetes Services.
-
-<img width="975" height="469" alt="image" src="https://github.com/user-attachments/assets/d9dce57c-5aa6-4368-bf83-a37d38b14d8b" />
-
