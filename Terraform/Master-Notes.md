@@ -485,7 +485,13 @@ provisioner "file" {
 }
 ```
 
-In this example, the ```file`` provisioner copies the ```localfile.txt``` from the local machine to the ```/path/on/remote/instance/file.txt``` location on the AWS EC2 instance using an SSH connection.
+In this example, the ```file`` provisioner copies the ```localfile.txt``` from the local machine to the ```/path/on/remote/instance/file.txt``` location on the AWS EC2 instance using an SSH connection.  
+Copies files from your machine to the remote server `Terraform → Copy file → EC2`  
+
+**Use case:**  
+Copy scripts  
+Copy application files  
+Copy configuration files  
 
 
 **2. remote-exec Provisioner:**
@@ -513,7 +519,13 @@ provisioner "remote-exec" {
   }
 }
 ```
-In this example, the ```remote-exec``` provisioner connects to the AWS EC2 instance using SSH and runs a series of commands to update the package repositories, install Apache HTTP Server, and start the HTTP server.
+In this example, the ```remote-exec``` provisioner connects to the AWS EC2 instance using SSH and runs a series of commands to update the package repositories, install Apache HTTP Server, and start the HTTP server.  
+Runs commands inside the created server `Terraform → SSH → EC2 → Run commands`  
+**Use case:**
+Install packages  
+Edit config files    
+Start services  
+Configure EC2 after creation  
 
 **3. local-exec Provisioner:**
 
@@ -531,5 +543,11 @@ resource "null_resource" "example" {
   }
 }
 ```
-In this example, a ```null_resource``` is used with a ```local-exec``` provisioner to run a simple local command that echoes a message to the console whenever Terraform is applied or refreshed. The ```timestamp()``` function ensures it runs each time.
+In this example, a ```null_resource``` is used with a ```local-exec``` provisioner to run a simple local command that echoes a message to the console whenever Terraform is applied or refreshed. The ```timestamp()``` function ensures it runs each time.  
+This command runs on:
+Your laptop  
+Jenkins agent  
+GitHub Actions runner  
+Any machine running Terraform  
+NOT on EC2.  
 
