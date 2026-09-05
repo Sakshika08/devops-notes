@@ -1,4 +1,4 @@
-###
+### Variable
 In variable do not add space before or after type `=` sign  
 variable_name="you_name"
 
@@ -40,29 +40,33 @@ The find command is a powerful tool used to search for files and directories on 
 
 Syntax: `find [where to look] [how to look] [what to match]`  
 Search by Name (Case-Insensitive): `find /home/user -iname "health.sh" `
-Use code with caution.Find and Delete Empty Folders:`find . -type d -empty -delete`  
-Use code with caution.Find Large Files (Greater than 100MB): `find /var/log -type f -size +100M`
+Find and Delete Empty Folders:`find . -type d -empty -delete`  
+Find Large Files (Greater than 100MB): `find /var/log -type f -size +100M`  
 
 
+---
+## sudo
+`sudo -i` (Recommended): Logs you in as the root user and loads the root profile environment. It is the cleanest way to open a root shell.  
+`sudo su -`: Uses your sudo privilege to execute the switch user (su) tool, changing you to the root user completely.  
+`sudo -s`: Gives you a root shell, but keeps your current user environment variables (like your home directory).  
+If you are trying to switch to a specific username instead of root, you would type `sudo -u username -s`.
 
-
-
-
+---
 
 ## Conditions
-[ condition ] is a Bash test expression used to evaluate conditions.
-Example: [ -e /etc/passwd ] checks whether the file /etc/passwd exists.
-[1 == 2]
-It is commonly used in if statements for decision making.
+[ condition ] is a Bash test expression used to evaluate conditions.  
+Example: [ -e /etc/passwd ] checks whether the file /etc/passwd exists.  
+[1 == 2] It is commonly used in if statements for decision making.  
 
 ### Common file test operators
--e file   # Exists
--f file   # Regular file
--d file   # Directory
--r file   # Readable
--w file   # Writable
--x file   # Executable
+-e file   # Exists  
+-f file   # Regular file  
+-d file   # Directory  
+-r file   # Readable  
+-w file   # Writable  
+-x file   # Executable  
 
+## `if` Loop
 ```
 if [ condition-is-true ]
 then
@@ -75,6 +79,22 @@ else
 fi
 ```
 
+Example compare two numbers using an if loop  
+```
+read -p "Enter first number: " num1
+read -p "Enter second number: " num2
+
+if [ $num1 > $num2 ]; then
+  echo "$num1 is greater than $num2"
+elif [ $num2 -gt $num1 ]; then
+  echo "$num2 is greater than $num1"
+esle
+  echo "Both numbers are equal"
+fi
+```
+
+---
+
 ## for Loop
 ```
 for VARIABLE in ITEM1 ITEM2 ITEMN
@@ -82,6 +102,9 @@ do
     command(s)
 done
 ```
+
+` for i in {1,1000}; do echo $1; done`
+
 
 ### 1. How do you loop through all files in a directory
 ```
@@ -127,6 +150,8 @@ done
 ```
 Interview Question: Why use $(date +%F)?
 Answer: Generates the current date in YYYY-MM-DD format, useful for backups and log files.
+
+---
 
 ## Positional Parameters
 Used to pass values to a Bash script from the command line.
@@ -379,3 +404,25 @@ $?   # Exit status of last command
 
 Example Backup File Created: /tmp/hosts.2026-09-01.12345
 ``
+---
+
+## kill and trap command
+
+`kill` sends a signal to a process (usually to stop it), while `trap` is used inside a script to catch those signals and run a specific cleanup action instead of crashing.
+
+### The kill Command (The Sender)
+kill is used to send a termination signal to a running program using its Process ID (PID).  
+Graceful Kill (SIGTERM / Signal 15): Asks the program to save its work and close cleanly: `kill 1234`  
+Force Kill (SIGKILL / Signal 9): Instantly forces the program to stop, bypassing any saves. `kill -9 1234`  
+
+### The trap Command (The Catcher)
+`trap` is written inside shell scripts. It intercepts signals (like someone pressing Ctrl+C or running a kill command) so your script can clean up temporary files before exiting.  
+Syntax: `trap 'action_to_take' SIGNAL`  
+Example (Cleanup on Exit): Deletes temporary files automatically if the script exits or gets interrupted  
+`trap "rm -f /tmp/temp_file.txt; exit" SIGINT SIGTERM EXIT`  
+
+**`trap "echo don't use the ctrl+c" SININT`**
+If you don't want the procees to terminate using Ctrl + C we can use above cmd. So when someone press Ctrl + C. Instead of killing your session, the terminal will print: don't use the ctrl+c  
+
+Interview TipThe SIGINT signal (Signal 2) stands for Signal Interrupt. It is the exact system signal triggered whenever a user hits Ctrl + C on their keyboard.
+  
