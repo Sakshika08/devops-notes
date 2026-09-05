@@ -1,5 +1,5 @@
 ###
-In variable do not add space before or after tyhe `=` sign
+In variable do not add space before or after type `=` sign  
 variable_name="you_name"
 
 ---
@@ -39,9 +39,9 @@ Download file or website
 The find command is a powerful tool used to search for files and directories on a storage drive based on conditions like name, size, type, or modification date  
 
 Syntax: `find [where to look] [how to look] [what to match]`  
-Search by Name (Case-Insensitive): find /home/user -iname "health.sh"
-Use code with caution.Find and Delete Empty Folders:bashfind . -type d -empty -delete
-Use code with caution.Find Large Files (Greater than 100MB):bashfind /var/log -type f -size +100M
+Search by Name (Case-Insensitive): `find /home/user -iname "health.sh" `
+Use code with caution.Find and Delete Empty Folders:`find . -type d -empty -delete`  
+Use code with caution.Find Large Files (Greater than 100MB): `find /var/log -type f -size +100M`
 
 
 
