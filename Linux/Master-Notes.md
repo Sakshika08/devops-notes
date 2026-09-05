@@ -2,6 +2,52 @@
 In variable do not add space before or after tyhe `=` sign
 variable_name="you_name"
 
+---
+
+### set
+`set -x` makes the terminal print every command it is running so you can see exactly what your script is doing step-by-step.
+The `nproc` command prints the total number of processing units (CPU cores) available to the operating system or current process.
+<img width="716" height="601" alt="image" src="https://github.com/user-attachments/assets/a939f8de-93ff-4e9e-b018-a5b72a87d624" />
+
+The `set -e` command instructs the shell to exit the script instantly if any command fails or returns a non-zero exit status.
+It acts as a safety net. Instead of continuing to run subsequent lines when something goes wrong (which can cause data corruption or unexpected behavior), the script stops immediately at the first error.
+
+`set -o pipefail`
+By default, in a pipeline command like dir1 | dir2 | dir3, the shell only checks if the very last command (dir3) succeeded. If a command in the middle fails (like dir2), the script completely ignores it and keeps going.Turning on pipefail forces the shell to look at the entire pipeline. If any command in the chain fails, the whole pipeline is treated as a failure. 
+This is almost always combined with set -e (set -eo pipefail) to immediately stop a script if a pipeline crashes.
+
+`set -e -o pipefail` (or set -eo pipefail): It tells the script to exit if any command fails (-e), and ensures that if a command fails inside a pipeline (like cmd1 | cmd2), the entire pipeline failure is caught.
+
+`set -ex`: Combines exit-on-error (-e) with command tracing (-x) so you can see exactly which line crashed the script before it terminated.
+
+---
+
+## curl
+Download a file and save it with its original name: `curl -O https://example.com`  
+Use code with caution.Download a file and save it with a new name: `curl -o my_script.sh https://example.com`  
+Use code with caution.View the raw HTML content or API data directly in the terminal: `curl https://github.com`  
+Get the error line  from some remote location from log file: `curl <loaction of file (http)> | grep ERROR` 
+
+### wget
+Download file or website
+
+`curl` is a flexible tool for sending and receiving data between a terminal and a server (great for APIs), while `wget` is a dedicated tool built strictly for downloading files and whole websites
+
+---
+
+## find
+The find command is a powerful tool used to search for files and directories on a storage drive based on conditions like name, size, type, or modification date  
+
+Syntax: `find [where to look] [how to look] [what to match]`  
+Search by Name (Case-Insensitive): find /home/user -iname "health.sh"
+Use code with caution.Find and Delete Empty Folders:bashfind . -type d -empty -delete
+Use code with caution.Find Large Files (Greater than 100MB):bashfind /var/log -type f -size +100M
+
+
+
+
+
+
 
 ## Conditions
 [ condition ] is a Bash test expression used to evaluate conditions.
