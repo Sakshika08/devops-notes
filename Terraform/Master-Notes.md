@@ -543,6 +543,7 @@ resource "null_resource" "example" {
   }
 }
 ```
+
 In this example, a ```null_resource``` is used with a ```local-exec``` provisioner to run a simple local command that echoes a message to the console whenever Terraform is applied or refreshed. The ```timestamp()``` function ensures it runs each time.  
 This command runs on:
 Your laptop  
@@ -551,3 +552,284 @@ GitHub Actions runner
 Any machine running Terraform  
 NOT on EC2.  
 
+---
+
+# Terraform Import
+
+What is Import?
+
+Terraform Import allows Terraform to start managing an existing resource without recreating it.
+
+When to use?
+
+- Existing EC2 instance
+- Existing S3 bucket
+- Existing IAM Role
+  
+## Terraform Import (Bring Existing Resources Under Terraform Management)
+
+### Step 1: Create Import Block
+
+In your Terraform configuration:
+
+```hcl
+import {
+  id = "resource-id"
+  to = aws_instance.example
+}
+```
+
+Example:
+
+```hcl
+import {
+  id = "i-0123456789abcdef0"
+  to = aws_instance.example
+}
+```
+
+---
+
+### Step 2: Generate Terraform Configuration
+
+```bash
+terraform plan --generate-config-out=generated_resource.tf
+```
+
+Terraform generates configuration code for the imported resource.
+
+---
+
+### Step 3: Review Generated Configuration
+
+Terraform creates:
+
+```text
+generated_resource.tf
+```
+
+Review the generated code and move it into your preferred Terraform files such as:
+
+```text
+main.tf
+ec2.tf
+s3.tf
+```
+
+---
+
+### Step 4: Import Resource into State
+
+```bash
+terraform import aws_instance.example i-0123456789abcdef0
+```
+
+This links the existing AWS resource with Terraform state.
+
+---
+
+### Step 5: Verify Import
+
+```bash
+terraform plan
+```
+
+Expected output:
+
+```text
+No changes. Your infrastructure matches the configuration.
+```
+
+This confirms the resource is successfully imported and Terraform state is synchronized.
+
+---
+
+## Terraform Drift Detection
+
+### What is Drift?
+
+Terraform drift occurs when infrastructure is modified outside Terraform.
+
+Example:
+
+* Terraform created an EC2 instance.
+* An engineer manually changes its instance type from the AWS Console.
+* Terraform state and actual infrastructure are now different.
+
+---
+
+## Option 1 (Recommended): Audit & Alerting
+
+Best practice in production environments.
+
+Example AWS approach:
+
+* CloudTrail records infrastructure changes.
+* EventBridge detects changes.
+* Lambda function validates the change.
+* Alert if the modification was performed by a non-Terraform IAM role.
+
+Benefits:
+
+* Near real-time drift detection.
+* No need for scheduled Terraform runs.
+* Better security and governance.
+
+---
+
+## Option 2: Scheduled Drift Checks
+
+Run drift detection periodically using a Cron Job, Jenkins Job, GitHub Actions workflow, etc.
+
+### Preview Drift
+
+```bash
+terraform plan -refresh-only
+```
+
+Detects differences between:
+
+* Terraform State
+* Actual Cloud Infrastructure
+
+No state changes are made.
+
+---
+
+### Update State
+
+```bash
+terraform apply -refresh-only
+```
+
+Updates Terraform state to match actual infrastructure.
+
+No infrastructure changes are performed.
+
+---
+
+## What Refresh Does
+
+### Queries Cloud APIs
+
+Checks actual resource configuration from providers such as:
+
+* AWS
+* Azure
+* Google Cloud
+
+---
+
+### Detects Drift
+
+Identifies changes made outside Terraform.
+
+Examples:
+
+* EC2 instance type changed
+* Security Group modified
+* Tags updated manually
+
+---
+
+### Updates State Only
+
+Refresh updates: ` terraform.tfstate `
+
+It does **not** modify cloud resources.
+
+---
+
+### Requires Existing State
+
+Refresh only works for resources already managed by Terraform.
+
+It cannot discover new resources.
+
+---
+
+## Import vs Refresh-Only
+
+### terraform import
+
+```bash
+terraform import aws_instance.example i-0123456789abcdef0
+```
+
+Purpose:
+
+* Bring an existing resource under Terraform management.
+* Resource is not currently present in Terraform state.
+
+Example:
+
+* A coworker manually created an S3 bucket.
+* Terraform must start managing it.
+
+---
+
+### terraform plan -refresh-only
+
+```bash
+terraform plan -refresh-only
+```
+
+Purpose:
+
+* Detect drift in resources already managed by Terraform.
+
+Example:
+
+* An EC2 instance exists in Terraform state.
+* Someone manually changes its configuration in AWS.
+
+---
+
+## Interview Summary
+
+### Use Refresh-Only When
+
+A resource is already managed by Terraform but someone changed it manually.
+
+Example:
+
+* EC2 instance resized from the AWS Console.
+* Security Group updated manually.
+* Tags changed outside Terraform.
+
+Commands:
+
+```bash
+terraform plan -refresh-only
+terraform apply -refresh-only
+```
+
+---
+
+### Use Import When
+
+A resource exists in AWS but Terraform is not managing it.
+
+Example:
+
+* Existing S3 bucket
+* Existing EC2 instance
+* Existing IAM role
+
+Command:
+
+```bash
+terraform import <resource-address> <resource-id>
+```
+
+Example:
+
+```bash
+terraform import aws_s3_bucket.logs my-company-logs
+```
+
+---
+
+## One-Line Interview Answer
+
+**terraform import** brings an existing unmanaged resource into Terraform state for the first time, whereas **terraform plan/apply -refresh-only** synchronizes Terraform state with the current state of resources that are already being managed by Terraform.
