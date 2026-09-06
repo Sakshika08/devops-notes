@@ -256,3 +256,29 @@ LRF
 - Local-exec → Local machine
 - Remote-exec → Remote server
 - File → File transfer
+
+---
+## Terraform Import
+- Used for unmanaged resources
+- Brings existing resource into state
+- Does not create resource
+- Common command: terraform import
+
+**Import Workflow:**
+1. Create import block
+2. Generate configuration
+3. Review generated code
+4. Run terraform import
+5. Verify with terraform plan
+
+## Terraform Refresh-Only
+- Detects infrastructure drift
+- Updates state only
+- Does not change infrastructure
+- Commands:
+  terraform plan -refresh-only
+  terraform apply -refresh-only
+
+
+
+
