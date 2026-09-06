@@ -397,11 +397,11 @@ then
 fi
 ```
 
-$1        → First argument passed to function
-basename  → Extracts filename from path
-date +%F  → Current date (YYYY-MM-DD)
-$$        → Current process ID
-$?        → Exit status of last command
+$1        → First argument passed to function  
+basename  → Extracts filename from path  
+date +%F  → Current date (YYYY-MM-DD)  
+$$        → Current process ID  
+$?        → Exit status of last command  
 
 Example Backup File Created: /tmp/hosts.2026-09-01.12345
 
