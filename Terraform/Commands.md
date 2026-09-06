@@ -48,7 +48,6 @@ terraform workspace new dev
 
 Creates a new workspace named `dev`.
 
-
 Terraform creates separate state files for workspaces under:
 
 ```text
@@ -260,7 +259,6 @@ terraform init -backend-config=backend.hcl
 ```
 
 Initializes Terraform using backend settings stored in a separate file.
-
 Commonly used with S3 backends.
 
 ---
@@ -297,7 +295,6 @@ terraform state rm aws_instance.web
 Removes a resource from Terraform state without deleting the actual infrastructure.
 
 **Use Case:**
-
 When Terraform should stop managing a resource, but the resource must remain in AWS.
 
 ---
@@ -309,7 +306,6 @@ terraform state mv aws_instance.old aws_instance.new
 ```
 
 Moves or renames resources within the Terraform state.
-
 Commonly used during refactoring.
 
 ---
@@ -324,7 +320,6 @@ terraform force-unlock LOCK_ID
 Removes a stale state lock.
 
 **Common Interview Scenario:**
-
 A Terraform execution was interrupted, leaving the state file locked in DynamoDB.
 
 ---
@@ -340,9 +335,7 @@ terraform import aws_instance.web i-1234567890abcdef
 
 Imports an existing resource into Terraform state.
 
-
 **Common Interview Scenario:**
-
 An EC2 instance already exists in AWS and needs to be managed by Terraform.
 
 ---
@@ -453,9 +446,6 @@ Shows what Terraform will destroy before executing the actual destroy command.
 > **Note:** Use `-target` cautiously. It is primarily intended for exceptional situations and may result in partial infrastructure changes if dependencies exist.
 
 ---
-
-
-
 
 ## Interview-Favorite Commands
 
