@@ -5,8 +5,8 @@ variable_name="you_name"
 ---
 
 ### set
-`set -x` makes the terminal print every command it is running so you can see exactly what your script is doing step-by-step.
-The `nproc` command prints the total number of processing units (CPU cores) available to the operating system or current process.
+`set -x` makes the terminal print every command it is running so you can see exactly what your script is doing step-by-step.  
+The `nproc` command prints the total number of processing units (CPU cores) available to the operating system or current process.  
 <img width="716" height="601" alt="image" src="https://github.com/user-attachments/assets/a939f8de-93ff-4e9e-b018-a5b72a87d624" />
 
 The `set -e` command instructs the shell to exit the script instantly if any command fails or returns a non-zero exit status.
@@ -79,7 +79,7 @@ else
 fi
 ```
 
-Example compare two numbers using an if loop  
+Example: Compare two numbers using an if loop  
 ```
 read -p "Enter first number: " num1
 read -p "Enter second number: " num2
@@ -148,7 +148,7 @@ do
     cp $file ${file}-${DATE}
 done
 ```
-Interview Question: Why use $(date +%F)?
+Interview Question: Why use $(date +%F)?  
 Answer: Generates the current date in YYYY-MM-DD format, useful for backups and log files.
 
 ---
@@ -168,11 +168,11 @@ Q2: What is the difference between $0 and $1?
 $0 → Script name
 $1 → First argument passed to the script
 
-$0   # Script name
-$1   # First argument
-$2   # Second argument
-$#   # Number of arguments
-$@   # All arguments
+$0   → Script name  
+$1   → First argument  
+$2   → Second argument  
+$#   → Number of arguments  
+$@   → All arguments  
 
 ### Accept unlimited files/directories
 ```
@@ -196,9 +196,9 @@ done
 ```
 
 ## Accepting User Input (STDIN) in Bash
-`read -p "Enter value: " variable`
--p → Displays a prompt message.
-variable → Stores the user's input.
+`read -p "Enter value: " variable`  
+-p → Displays a prompt message.  
+variable → Stores the user's input.  
 
 ### Accept Multiple Inputs
 ```
@@ -396,14 +396,15 @@ then
     echo "Backup succeeded!"
 fi
 ```
-$1   # First argument passed to function
-basename  # Extracts filename from path
-date +%F  # Current date (YYYY-MM-DD)
-$$   # Current process ID
-$?   # Exit status of last command
+
+$1        → First argument passed to function
+basename  → Extracts filename from path
+date +%F  → Current date (YYYY-MM-DD)
+$$        → Current process ID
+$?        → Exit status of last command
 
 Example Backup File Created: /tmp/hosts.2026-09-01.12345
-``
+
 ---
 
 ## kill and trap command
