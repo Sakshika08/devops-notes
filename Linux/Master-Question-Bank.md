@@ -19,21 +19,21 @@
 
 
 ### Q1. Application is down. What will you check?  
-`systemctl status app`  to Check service status
-`ps -ef | grep aap` to Check process
-`journalctl -u app` or `tail -100 app.log`  to Check logs
-`df -h` Check disk
-`free -m` or `top` to Check memory
-`ping`, `curl` and `nslookup` to Check network
-`systemctl restart app` Restart service if required
+`systemctl status app`  to Check service status  
+`ps -ef | grep aap` to Check process  
+`journalctl -u app` or `tail -100 app.log`  to Check logs  
+`df -h` Check disk  
+`free -m` or `top` to Check memory  
+`ping`, `curl` and `nslookup` to Check network  
+`systemctl restart app` Restart service if required  
 
 ### Q2. Service is consuming very high CPU.  
-top  
-ps -eo pid,ppid,cmd,%mem,%cpu --sort=-%cpu 
+`top`  
+`ps -eo pid,ppid,cmd,%mem,%cpu --sort=-%cpu `
 
 ### Q3. How to restart failed service?  
-systemctl restart nginx  
-systemctl status nginx  
+`systemctl restart nginx  `  
+`systemctl status nginx ` 
 
 ---
 
