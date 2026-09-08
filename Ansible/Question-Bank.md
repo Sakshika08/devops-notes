@@ -33,3 +33,37 @@ A handler is a task that runs only when notified by a changed task, typically us
         name: nginx
         state: restarted
 ```
+
+---
+
+What is Inventory?  
+Inventory is a file that contains the list of servers Ansible manages, either as individual hosts or grouped hosts.
+
+What is a Playbook?  
+A playbook is a YAML file that defines a sequence of tasks to be executed on managed hosts.
+
+What is a Role?   
+A role is a reusable and modular way to organize Ansible content such as tasks, handlers, templates, variables, and files.
+
+What is a Handler?   
+A handler is a task that runs only when notified by a changed task, commonly used to restart or reload services.
+
+What is a Template?  
+A template is a Jinja2-based file that renders variables dynamically before being copied to the target host.
+
+What is Ansible Vault?  
+Ansible Vault is used to encrypt and securely store sensitive data such as passwords, tokens, and API keys.
+
+-m = Module to run
+-a = Arguments for that module
+`ansible all -m ping`   
+Run ad-hoc command:  `ansible web -m command -a "uptime"`    
+`ansible all -m setup` → Collects system information about hosts.  
+`ansible web -m yum -a "name=nginx state=present"`  → Installs nginx on RHEL/CentOS.  
+`ansible web -m service -a "name=nginx state=started"` → Starts nginx service.  
+`ansible-playbook site.yml --check` → Shows what changes would occur without making them.  
+`ansible-playbook site.yml --diff` → Displays file/config changes.  
+`ansible-playbook -i inventory.ini site.yml` → Uses specified inventory file.  
+`ansible-playbook site.yml --limit web` → Runs only on web hosts.  
+`ansible-vault encrypt secrets.yml` → Encrypts sensitive files.  
+
