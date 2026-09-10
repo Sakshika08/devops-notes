@@ -559,12 +559,9 @@ NOT on EC2.
 
 # Terraform Import
 
-What is Import?
-
 Terraform Import allows Terraform to start managing an existing resource without recreating it.
 
 When to use?
-
 - Existing EC2 instance
 - Existing S3 bucket
 - Existing IAM Role
@@ -572,9 +569,7 @@ When to use?
 ## Terraform Import (Bring Existing Resources Under Terraform Management)
 
 ### Step 1: Create Import Block
-
 In your Terraform configuration:
-
 ```hcl
 import {
   id = "resource-id"
@@ -583,7 +578,6 @@ import {
 ```
 
 Example:
-
 ```hcl
 import {
   id = "i-0123456789abcdef0"
@@ -591,58 +585,39 @@ import {
 }
 ```
 
----
-
 ### Step 2: Generate Terraform Configuration
-
 ```bash
 terraform plan --generate-config-out=generated_resource.tf
 ```
-
 Terraform generates configuration code for the imported resource.
 
----
 
 ### Step 3: Review Generated Configuration
 
-Terraform creates:
-
-```text
-generated_resource.tf
-```
+Terraform creates: ` generated_resource.tf `  
 
 Review the generated code and move it into your preferred Terraform files such as:
-
 ```text
 main.tf
 ec2.tf
 s3.tf
 ```
 
----
-
 ### Step 4: Import Resource into State
-
 ```bash
 terraform import aws_instance.example i-0123456789abcdef0
 ```
-
 This links the existing AWS resource with Terraform state.
 
----
 
 ### Step 5: Verify Import
-
 ```bash
 terraform plan
 ```
-
 Expected output:
-
 ```text
 No changes. Your infrastructure matches the configuration.
 ```
-
 This confirms the resource is successfully imported and Terraform state is synchronized.
 
 ---
@@ -754,7 +729,7 @@ If the manual change is valid and should remain (Align Code with Reality):
 
 **Update Terraform code:** ` instance_type = "t3.micro" `
 
-**Verify:** ` terraform plan `
+**Verify:** ` terraform plan `  
 Output:
 ```text
 No changes.
@@ -785,12 +760,9 @@ instance_type = "t2.micro"
 
 **Run:** ` terraform plan `
 
-**Terraform detects:**  
-```text
-t3.micro -> t2.micro
-```
+**Terraform detects:**  t3.micro -> t2.micro
 
-**Run:** ` terraform apply `
+**Run:** ` terraform apply `  
 Terraform changes the resource back to the value defined in code.
 
 **Final:**
