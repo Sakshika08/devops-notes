@@ -774,6 +774,8 @@ State now reflects reality.
 
 #### Align Code → Reality
 
+**Align Code → Reality**
+
 If the manual change is valid and should remain:
 
 ### Run:
