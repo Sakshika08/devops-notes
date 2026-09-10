@@ -262,7 +262,9 @@ LRF
 - Used for unmanaged resources
 - Brings existing resource into state
 - Does not create resource
-- Common command: terraform import
+- Existing EC2 instance
+
+- Common command: `terraform import`
 
 **Import Workflow:**
 1. Create import block
@@ -275,10 +277,16 @@ LRF
 - Detects infrastructure drift
 - Updates state only
 - Does not change infrastructure
+- 
 - Commands:
   terraform plan -refresh-only
   terraform apply -refresh-only
 
+Terraform drift occurs when the actual infrastructure differs from the Terraform state or configuration due to manual changes outside Terraform. To detect it, I run terraform plan or terraform apply -refresh-only. If the manual change is valid, I update the Terraform code to match the resource. If the change is unauthorized, I run terraform apply straight after terraform apply -refresh-only command to bring the infrastructure back to the desired state defined in code.
 
+## One-Line Interview Answer
+
+**terraform import** brings an existing unmanaged resource into Terraform state for the first time, whereas   
+**terraform plan/apply -refresh-only** synchronizes Terraform state with the current state of resources that are already being managed by Terraform.
 
 
