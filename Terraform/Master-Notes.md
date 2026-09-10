@@ -49,8 +49,11 @@ terraform {
 ```~>``` operator is called the pessimistic version constraint. It allows Terraform to use newer compatible versions while preventing upgrades that might introduce breaking changes.  
 For example, The string ~> 5.92 means your configuration supports any version of the provider with a major version of 5 and a minor version greater than or equal to 92.
 
-**Terraform Block**: Defines what provider and Terraform versions should be used.
-**Provider Block**: Defines how Terraform connects to the provider (AWS, Azure, GCP, etc.).
+**Terraform Block**: The terraform block manages your Terraform settings, including provider versions and the version of Terraform itself.  
+
+**Provider Block**: Defines how Terraform connects to the provider (AWS, Azure, GCP, etc.).  
+
+**Configuration blocks:** Terraform parses all .tf files in the working directory, allowing you to flexibly organize your configuration.
 
 ### Different Ways to Configure Providers in Terraform
 #### In the Root Module
@@ -656,6 +659,7 @@ Example:
 * An engineer manually changes its instance type from the AWS Console.
 * Terraform state and actual infrastructure are now different.
 
+
 ---
 
 ## Option 1 (Recommended): Audit & Alerting
@@ -679,7 +683,10 @@ Benefits:
 
 ## Option 2: Scheduled Drift Checks
 
-Run drift detection periodically using a Cron Job, Jenkins Job, GitHub Actions workflow, etc.
+Run drift detection periodically using a Cron Job, Jenkins Job, GitHub Actions workflow, etc.  
+The `-refresh-only` flag instructs Terraform to inspect the real-world infrastructure, detect the manual changes, and update the state file to reflect reality, without actually modifying your live resources.
+
+
 
 ### Preview Drift
 
