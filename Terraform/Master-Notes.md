@@ -722,16 +722,13 @@ Checks actual resource configuration from providers such as:
 * Google Cloud
 
 **Detects Drift**
-
-Identifies changes made outside Terraform.
-
+Identifies changes made outside Terraform.  
 Examples:
 * EC2 instance type changed
 * Security Group modified
 * Tags updated manually
 
 **Updates State Only**
-
 Refresh updates: `terraform.tfstate `  
 It does **not** modify cloud resources.
 
@@ -743,8 +740,7 @@ It cannot discover new resources.
 
 ## Terraform Drift Resolution Notes
 
-Drift occurs when the actual infrastructure is changed outside Terraform.
-
+Drift occurs when the actual infrastructure is changed outside Terraform.  
 Example:
 ```text
 Terraform Code (.tf) : t2.micro
@@ -753,12 +749,8 @@ Actual AWS Resource  : t3.micro
 ```
 Someone manually modified the EC2 instance in the AWS Console.
 
----
-
 ### Step 1: Refresh the State
-` terraform apply -refresh-only `
-
-Terraform reads the real infrastructure and updates the state file.
+` terraform apply -refresh-only ` → Terraform reads the real infrastructure and updates the state file.
 
 Result:
 ```text
@@ -768,14 +760,10 @@ Actual : t3.micro
 ```
 State now reflects reality.
 
----
 
 ### Option 1: Keep the Manual Changes
 
 #### Align Code → Reality
-
-**Align Code → Reality**
-
 If the manual change is valid and should remain:
 
 ### Run:
