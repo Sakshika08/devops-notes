@@ -647,55 +647,56 @@ This confirms the resource is successfully imported and Terraform state is synch
 
 ---
 
-## Terraform Drift Detection
-
-### What is Drift?
-
+## What is Drift?
 Terraform drift occurs when infrastructure is modified outside Terraform.
 
 Example:
-
 * Terraform created an EC2 instance.
 * An engineer manually changes its instance type from the AWS Console.
 * Terraform state and actual infrastructure are now different.
 
+---
+
+## How to Detect Drift?
+
+A drift exists when: ` Terraform Code ≠ Actual Infrastructure `
+
+Common reasons:
+
+* Manual changes from Cloud Console
+* CLI/API modifications
+* Scripts executed outside Terraform
+* Emergency production fixes not reflected in code
 
 ---
 
-## Option 1 (Recommended): Audit & Alerting
+### Option 1 (Recommended): Audit & Alerting
 
 Best practice in production environments.
 
 Example AWS approach:
-
 * CloudTrail records infrastructure changes.
 * EventBridge detects changes.
 * Lambda function validates the change.
 * Alert if the modification was performed by a non-Terraform IAM role.
 
 Benefits:
-
 * Near real-time drift detection.
 * No need for scheduled Terraform runs.
 * Better security and governance.
 
 ---
 
-## Option 2: Scheduled Drift Checks
+### Option 2: Scheduled Drift Checks
 
 Run drift detection periodically using a Cron Job, Jenkins Job, GitHub Actions workflow, etc.  
+
 The `-refresh-only` flag instructs Terraform to inspect the real-world infrastructure, detect the manual changes, and update the state file to reflect reality, without actually modifying your live resources.
 
-
-
 ### Preview Drift
-
-```bash
-terraform plan -refresh-only
-```
+` terraform plan -refresh-only `
 
 Detects differences between:
-
 * Terraform State
 * Actual Cloud Infrastructure
 
@@ -704,54 +705,205 @@ No state changes are made.
 ---
 
 ### Update State
+` terraform apply -refresh-only `
+
+Updates Terraform state to match actual infrastructure.  
+No infrastructure changes are performed.
+
+---
+
+### What Refresh Does
+
+**Queries Cloud APIs**
+
+Checks actual resource configuration from providers such as:
+* AWS
+* Azure
+* Google Cloud
+
+**Detects Drift**
+
+Identifies changes made outside Terraform.
+
+Examples:
+* EC2 instance type changed
+* Security Group modified
+* Tags updated manually
+
+**Updates State Only**
+
+Refresh updates: `terraform.tfstate `  
+It does **not** modify cloud resources.
+
+**Requires Existing State**
+Refresh only works for resources already managed by Terraform.  
+It cannot discover new resources.
+
+---
+
+## Terraform Drift Resolution Notes
+
+Drift occurs when the actual infrastructure is changed outside Terraform.
+
+Example:
+```text
+Terraform Code (.tf) : t2.micro
+Terraform State      : t2.micro
+Actual AWS Resource  : t3.micro
+```
+Someone manually modified the EC2 instance in the AWS Console.
+
+---
+
+### Step 1: Refresh the State
+` terraform apply -refresh-only `
+
+Terraform reads the real infrastructure and updates the state file.
+
+Result:
+```text
+Code   : t2.micro
+State  : t3.micro
+Actual : t3.micro
+```
+State now reflects reality.
+
+---
+
+### Option 1: Keep the Manual Changes
+
+#### Align Code → Reality
+
+If the manual change is valid and should remain:
+
+### Run:
 
 ```bash
 terraform apply -refresh-only
 ```
 
-Updates Terraform state to match actual infrastructure.
+### Update Terraform code:
 
-No infrastructure changes are performed.
+```hcl
+instance_type = "t3.micro"
+```
 
----
+### Verify:
 
-## What Refresh Does
+```bash
+terraform plan
+```
 
-### Queries Cloud APIs
+Output:
 
-Checks actual resource configuration from providers such as:
+```text
+No changes.
+Infrastructure matches configuration.
+```
 
-* AWS
-* Azure
-* Google Cloud
+Final:
 
----
+```text
+Code   = t3.micro
+State  = t3.micro
+Actual = t3.micro
+```
 
-### Detects Drift
-
-Identifies changes made outside Terraform.
-
-Examples:
-
-* EC2 instance type changed
-* Security Group modified
-* Tags updated manually
-
----
-
-### Updates State Only
-
-Refresh updates: ` terraform.tfstate `
-
-It does **not** modify cloud resources.
+✅ Drift resolved by updating Terraform code.
 
 ---
 
-### Requires Existing State
+## Option 2: Revert the Manual Changes
 
-Refresh only works for resources already managed by Terraform.
+### Align Reality → Code
 
-It cannot discover new resources.
+If the manual change was accidental:
+
+### Run:
+
+```bash
+terraform apply -refresh-only
+```
+
+### Keep Terraform code unchanged:
+
+```hcl
+instance_type = "t2.micro"
+```
+
+### Run:
+
+```bash
+terraform plan
+```
+
+Terraform detects:
+
+```text
+t3.micro -> t2.micro
+```
+
+### Run:
+
+```bash
+terraform apply
+```
+
+Terraform changes the resource back to the value defined in code.
+
+Final:
+
+```text
+Code   = t2.micro
+State  = t2.micro
+Actual = t2.micro
+```
+
+✅ Drift resolved by enforcing Terraform code.
+
+---
+
+## Summary Flow
+
+```text
+Drift Detected
+       |
+       v
+terraform apply -refresh-only
+       |
+       v
+State Updated to Match Reality
+       |
+       +-------------------+
+       |                   |
+       v                   v
+Keep Change?         Remove Change?
+       |                   |
+Update .tf Code      terraform apply
+       |                   |
+       v                   v
+Code = State = Actual Infrastructure
+```
+
+---
+
+## 30-Second Interview Answer
+
+Terraform drift happens when the actual infrastructure differs from the Terraform configuration due to manual changes outside Terraform. First, I run `terraform apply -refresh-only` to update the state with the real infrastructure. If the manual change is intended, I update the Terraform code to match it. If the change is unauthorized, I run `terraform apply` to bring the infrastructure back to the desired state defined in code.
+
+---
+
+## One-Line Memory Trick
+
+```text
+Drift = Code ≠ Reality
+
+Detect  → terraform plan -refresh-only
+Refresh → terraform apply -refresh-only
+
+Keep change?   → Update Code
+Remove change? → Apply Code
+```
 
 ---
 
