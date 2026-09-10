@@ -1,7 +1,8 @@
-# Why Infrastructure as Code (IaC)?
+# Terraform
+
+## Why Infrastructure as Code (IaC)?
 
 Before the advent of IaC:
-
 - **Manual Server Configuration** – Infrastructure was configured manually.
 - **No Version Control** – Changes were difficult to track and audit.
 - **Documentation-Driven Processes** – Relied heavily on manual documentation.
@@ -376,7 +377,7 @@ In this example, the count attribute of the aws_instance resource uses a conditi
 ## 14. Built-in Functions
 Terraform provides a wide range of built-in functions that you can use within your configuration files (usually written in HashiCorp Configuration Language, or HCL) to manipulate and transform data. These functions help you perform various tasks when defining your infrastructure. Here are some commonly used built-in functions in Terraform:
 
-1. **concat(list1, list2, ...): Combines multiple lists into a single list.**
+**1. concat(list1, list2, ...): Combines multiple lists into a single list.**
 ```hcl
 variable "list1" {
   type    = list
@@ -393,7 +394,7 @@ output "combined_list" {
 }
 ```
 
-2. **element(list, index): Returns the element at the specified index in a list.**
+**2. element(list, index): Returns the element at the specified index in a list.**
 ```hcl
 variable "my_list" {
   type    = list
@@ -414,7 +415,7 @@ output "list_length" {
 }
 ```
 
-3. **map(key, value): Creates a map from a list of keys and a list of values.**
+**3. map(key, value): Creates a map from a list of keys and a list of values.**
 ```hcl
 variable "keys" {
   type    = list
@@ -431,7 +432,7 @@ output "my_map" {
 }
 ```
 
-4. **lookup(map, key): Retrieves the value associated with a specific key in a map.**
+**4. lookup(map, key): Retrieves the value associated with a specific key in a map.**
 ```hcl
 variable "my_map" {
   type    = map(string)
@@ -453,7 +454,7 @@ output "joined_string" {
 ```
 These are just a few examples of the built-in functions available in Terraform. You can find more functions and detailed documentation in the official Terraform documentation, which is regularly updated to include new features and improvements
 
-## 15.Provisioners
+## 15. Provisioners
 A Provisioner is used to execute scripts or commands after a resource is created (or before it's destroyed).
 
 Think of it as: Resource Creation → Provisioner Runs → Additional Configuration
@@ -467,7 +468,7 @@ Copy files
 All of this can be done using a provisioner.
 
 ### Types of Provisioners
-**1. file Provisioner:**
+### 1. file Provisioner 
 The file provisioner is used to copy files or directories from the local machine to a remote machine. This is useful for deploying configuration files, scripts, or other assets to a provisioned instance.
 
 Example:
@@ -497,7 +498,7 @@ Copy application files
 Copy configuration files  
 
 
-**2. remote-exec Provisioner:**
+### 2. remote-exec Provisioner  
 The remote-exec provisioner is used to run scripts or commands on a remote machine over SSH or WinRM connections. It's often used to configure or install software on provisioned instances.
 
 Example:
@@ -530,8 +531,7 @@ Edit config files
 Start services  
 Configure EC2 after creation  
 
-**3. local-exec Provisioner:**
-
+### 3. local-exec Provisioner  
 The local-exec provisioner is used to run scripts or commands locally on the machine where Terraform is executed. It is useful for tasks that don't require remote execution, such as initializing a local database or configuring local resources.
 
 Example:
@@ -675,26 +675,12 @@ No infrastructure changes are performed.
 
 ---
 
-### What Refresh Does
+## What Refresh Does
 
-**Queries Cloud APIs:** Checks actual resource configuration from providers such as:
-* AWS
-* Azure
-* Google Cloud
-
+**Queries Cloud APIs:** Checks actual resource configuration from cloud providers  
 **Detects Drift:** Identifies changes made outside Terraform.  
-Examples:
-* EC2 instance type changed
-* Security Group modified
-* Tags updated manually
-
-**Updates State Only:** 
-Refresh updates: `terraform.tfstate `  
-It does **not** modify cloud resources.
-
-**Requires Existing State**  
-Refresh only works for resources already managed by Terraform.  
-It cannot discover new resources.
+**Updates State Only:**  Refresh updates `terraform.tfstate ` only. It does **not** modify cloud resources.    
+**Requires Existing State:** Refresh only works for resources already managed by Terraform. It cannot discover new resources.
 
 ---
 
@@ -822,85 +808,19 @@ Remove change? → Apply Code
 ## Import vs Refresh-Only
 
 ### terraform import
-
-```bash
-terraform import aws_instance.example i-0123456789abcdef0
-```
-
-Purpose:
-
 * Bring an existing resource under Terraform management.
 * Resource is not currently present in Terraform state.
 
 Example:
-
 * A coworker manually created an S3 bucket.
 * Terraform must start managing it.
 
----
-
 ### terraform plan -refresh-only
-
-```bash
-terraform plan -refresh-only
-```
-
-Purpose:
-
 * Detect drift in resources already managed by Terraform.
 
 Example:
-
 * An EC2 instance exists in Terraform state.
 * Someone manually changes its configuration in AWS.
 
 ---
 
-## Interview Summary
-
-### Use Refresh-Only When
-
-A resource is already managed by Terraform but someone changed it manually.
-
-Example:
-
-* EC2 instance resized from the AWS Console.
-* Security Group updated manually.
-* Tags changed outside Terraform.
-
-Commands:
-
-```bash
-terraform plan -refresh-only
-terraform apply -refresh-only
-```
-
----
-
-### Use Import When
-
-A resource exists in AWS but Terraform is not managing it.
-
-Example:
-
-* Existing S3 bucket
-* Existing EC2 instance
-* Existing IAM role
-
-Command:
-
-```bash
-terraform import <resource-address> <resource-id>
-```
-
-Example:
-
-```bash
-terraform import aws_s3_bucket.logs my-company-logs
-```
-
----
-
-## One-Line Interview Answer
-
-**terraform import** brings an existing unmanaged resource into Terraform state for the first time, whereas **terraform plan/apply -refresh-only** synchronizes Terraform state with the current state of resources that are already being managed by Terraform.
