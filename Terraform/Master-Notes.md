@@ -177,9 +177,11 @@ The tags argument sets the EC2 instance's name.
 Initialize your Terraform workspace with the ```terraform init``` command. Terraform downloads and installs the providers defined in your configuration in your current working directory. Install the plugins Terraform needs to manage the infrastructure.  
 Terraform downloaded the provider and installed it in a hidden ```.terraform``` subdirectory of your current working directory. Terraform also created a file named ```.terraform.lock.hcl``` which specifies the exact provider versions used with your workspace, ensuring consistency between runs.
 
-## 5. Create infrastructure
+## 5. Create infrastructure (Terraform workflow)  
+**init** - Initialize your Terraform workspace 
 **Plan** - Preview the changes Terraform will make to match your configuration.
 **Apply** - Make the planned changes.
+**Destroy** - Destroy resources
 
 ## 4. Module
 A Terraform module is a reusable and self-contained collection of Terraform configuration files that groups related resources together. Modules help organize infrastructure code, improve reusability, and reduce duplication. Terraform provides a root module by default, and additional child modules can be created or sourced from the Terraform Registry.
@@ -455,15 +457,14 @@ output "joined_string" {
 These are just a few examples of the built-in functions available in Terraform. You can find more functions and detailed documentation in the official Terraform documentation, which is regularly updated to include new features and improvements
 
 ## 15. Provisioners
-A Provisioner is used to execute scripts or commands after a resource is created (or before it's destroyed).
-
+A Provisioner is used to execute scripts or commands after a resource is created (or before it's destroyed).   
 Think of it as: Resource Creation → Provisioner Runs → Additional Configuration
 
 For example:
-Create an EC2 instance
-SSH into the instance
-Install Apache/Nginx
-Copy files
+Create an EC2 instance  
+SSH into the instance  
+Install Apache/Nginx  
+Copy files  
 
 All of this can be done using a provisioner.
 
@@ -548,8 +549,8 @@ resource "null_resource" "example" {
 ```
 
 In this example, a ```null_resource``` is used with a ```local-exec``` provisioner to run a simple local command that echoes a message to the console whenever Terraform is applied or refreshed. The ```timestamp()``` function ensures it runs each time.  
-This command runs on:
-Your laptop  
+This command runs on:  
+Your laptop   
 Jenkins agent  
 GitHub Actions runner  
 Any machine running Terraform  
@@ -560,8 +561,7 @@ NOT on EC2.
 # Terraform Import
 
 Terraform Import allows Terraform to start managing an existing resource without recreating it.
-
-When to use?
+When to use?  
 - Existing EC2 instance
 - Existing S3 bucket
 - Existing IAM Role
@@ -586,16 +586,12 @@ import {
 ```
 
 ### Step 2: Generate Terraform Configuration
-```bash
-terraform plan --generate-config-out=generated_resource.tf
-```
-Terraform generates configuration code for the imported resource.
+` terraform plan --generate-config-out=generated_resource.tf `  
+→ Terraform generates configuration code for the imported resource.
 
 
 ### Step 3: Review Generated Configuration
-
 Terraform creates: ` generated_resource.tf `  
-
 Review the generated code and move it into your preferred Terraform files such as:
 ```text
 main.tf
@@ -604,10 +600,7 @@ s3.tf
 ```
 
 ### Step 4: Import Resource into State
-```bash
-terraform import aws_instance.example i-0123456789abcdef0
-```
-This links the existing AWS resource with Terraform state.
+`terraform import aws_instance.example i-0123456789abcdef0 ` → This links the existing AWS resource with Terraform state.
 
 
 ### Step 5: Verify Import
@@ -623,8 +616,8 @@ This confirms the resource is successfully imported and Terraform state is synch
 ---
 
 # Drift
-Terraform drift occurs when infrastructure is modified outside Terraform.
 
+Terraform drift occurs when infrastructure is modified outside Terraform.
 Example:
 * Terraform created an EC2 instance.
 * An engineer manually changes its instance type from the AWS Console.
@@ -635,7 +628,6 @@ Example:
 ## How to Detect Drift?
 
 A drift exists when: ` Terraform Code ≠ Actual Infrastructure `
-
 Common reasons:
 * Manual changes from Cloud Console
 * CLI/API modifications
@@ -785,12 +777,6 @@ Code = State = Actual Infrastructure
 
 ---
 
-### 30-Second Interview Answer
-
-Terraform drift happens when the actual infrastructure differs from the Terraform configuration due to manual changes outside Terraform. First, I run `terraform apply -refresh-only` to update the state with the real infrastructure. If the manual change is intended, I update the Terraform code to match it. If the change is unauthorized, I run `terraform apply` to bring the infrastructure back to the desired state defined in code.
-
----
-
 ### One-Line Memory Trick
 
 ```text
@@ -802,7 +788,6 @@ Refresh → terraform apply -refresh-only
 Keep change?   → Update Code
 Remove change? → Apply Code
 ```
-
 ---
 
 ## Import vs Refresh-Only
@@ -824,3 +809,71 @@ Example:
 
 ---
 
+# Terraform Lifecycle Meta-Argument
+
+lifecycle is used inside a Terraform resource block to control how Terraform creates, updates, or destroys resources.
+
+### 1. create_before_destroy
+Creates the new resource first, then deletes the old one.
+```
+resource "aws_instance" "web" {
+  ami           = "ami-123456"
+  instance_type = "t2.micro"
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+```
+Prevents downtime during replacement.
+
+### 2. prevent_destroy
+
+Prevents accidental deletion of critical resources.  
+```
+resource "aws_db_instance" "prod_db" {
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+```
+If someone runs: ` terraform destroy ` Terraform will throw an error instead of deleting the database.  
+Useful for Production DBs, S3 buckets, EKS clusters.
+
+### 3. ignore_changes
+
+Tells Terraform to ignore changes to specific attributes.  
+```
+resource "aws_instance" "web" {
+  ami = "ami-123456"
+
+  lifecycle {
+    ignore_changes = [
+      tags
+    ]
+  }
+}
+```
+Example:  
+Terraform creates VM with tags.  
+Someone manually updates tags in AWS Console.  
+terraform plan will not show changes.  
+✅ Useful when another team/tool manages certain attributes.  
+
+### 4. replace_triggered_by
+
+Forces resource recreation when another resource changes.
+```
+resource "aws_instance" "web" {
+
+  lifecycle {
+    replace_triggered_by = [
+      aws_launch_template.app
+    ]
+  }
+}
+```
+If the Launch Template changes, the EC2 instance is recreated automatically.
+
+✅ Useful for immutable infrastructure.
