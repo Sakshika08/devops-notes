@@ -19,6 +19,9 @@ Terraform is HashiCorp's Infrastructure as Code tool used to provision and manag
   
 # Key Terraform Concepts
 
+**Terraform Block**  
+The terraform block manages your Terraform settings, including provider versions and the version of Terraform itself.
+
 ## 1. Provider
 Plugin used to interact with cloud platforms (AWS, Azure, GCP). Defines where Terraform creates resources.
 
@@ -59,6 +62,9 @@ resource "aws_instance" "web" {
   instance_type = "t2.micro"
 }
 ```
+
+---
+
 ## 3. Module
 Reusable collection of Terraform code. Helps avoid duplication.  
 Benefits:
@@ -70,9 +76,17 @@ Benefits:
 - Versioning
 
 Types:
-- Root Module
-- Child Module
+- Root Module = Main Terraform configuration being executed.
+- Child Module = Reusable module called from another module.
 - Terraform Registry Modules
+
+Input = Variable passed into a module.  
+Output = Value returned from a module.  
+Source = Location of module (local path, Git, Registry).  
+
+Modules = Reusability + Standardization + Less Duplication
+
+---
 
 ## 4. Configuration Files
 Terraform files use .tf extension.
@@ -99,6 +113,14 @@ output "instance_id" {
   value = aws_instance.web.id
 }
 ```
+
+**Terraform Environment Variables** 
+Use TF_VAR_<variable_name> to pass variable values from the shell or CI/CD pipeline without storing them in Terraform code. Commonly used for environment-specific values and secrets.  
+
+Environment variables are used to externalize application configuration such as URLs, ports, credentials, and environment-specific settings, avoiding hardcoding and improving portability across environments.
+
+---
+
 ## 6. Terraform tfvars
 **variables.tf** defines variables, while **terraform.tfvars** provides actual values for those variables during deployment.
 ```variable "instance_type" {}```
