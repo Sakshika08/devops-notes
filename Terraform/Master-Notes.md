@@ -46,6 +46,9 @@ terraform apply
 terraform destroy
 ```
 
+Initialize your Terraform workspace with the ```terraform init``` command. Terraform downloads and installs the providers defined in your configuration in your current working directory. Install the plugins Terraform needs to manage the infrastructure.  
+Terraform downloaded the provider and installed it in a hidden ```.terraform``` subdirectory of your current working directory. Terraform also created a file named ```.terraform.lock.hcl``` which specifies the exact provider versions used with your workspace, ensuring consistency between runs.
+
 ### 3. Provider Plugins
 A Provider is a plugin that enables Terraform to interact with a specific platform by calling its APIs.
 A provider acts as a bridge between Terraform and the target platform. Terraform Core uses providers to communicate with cloud APIs and create, update, or delete resources.
@@ -86,7 +89,8 @@ Current State (tfstate)
 ```
 and generates the execution plan.
 
-## Terraform Workflow
+### Terraform Workflow
+```
 Write Code
     |
 terraform init
@@ -102,11 +106,10 @@ terraform apply
 Create Resources
     |
 Update State File
+```
 
 
-## Key Terminology and Concept
-
-### The ```terraform``` block
+## The ```terraform``` block
 **Responsibilities**
 - Specifies required Terraform version  
 - Specifies required providers  
@@ -130,6 +133,8 @@ terraform {
 ```version``` - Specifies which provider versions are allowed.  
 ```~>``` operator is called the pessimistic version constraint. It allows Terraform to use newer compatible versions while preventing upgrades that might introduce breaking changes.  
 For example, The string ~> 5.92 means your configuration supports any version of the provider with a major version of 5 and a minor version greater than or equal to 92.
+
+## Provider
 
 ### Provider Authentication Methods (AWS)
 The most secure way to authenticate Terraform with AWS is by using IAM Roles with temporary credentials instead of long-lived access keys. Terraform can assume an IAM Role and obtain temporary credentials from AWS STS, eliminating the need to store AWS access keys and secret keys.
@@ -232,7 +237,7 @@ resource "aws_instance" "example2" {
 }
 ```
 
-## 2. Data sources
+## Data sources
 You can use data blocks to query your cloud provider for information about other resources. This data source fetches data about the latest AWS AMI that matches the filter, so you do not have to hardcode the AMI ID into your configuration. 
 Data sources help keep your configuration dynamic and avoid hardcoded values that can become stale. 
 Even though the data source is not an actual resource, Terraform tracks it in your state file.  
@@ -251,7 +256,7 @@ data "aws_ami" "ubuntu" {
 ```
 In this example, the ```data.aws_ami.ubuntu``` data source loads an AMI for the most recent Ubuntu Noble Numbat release in the region configured for your provider.
 
-## 3. Resource
+## Resource
 A resource is a specific infrastructure component that you want to create and manage using Terraform. Resources can include virtual machines, databases, storage buckets, network components, and more. Each resource has a type and configuration parameters that you define in your Terraform code.
 main.tf
 ```
@@ -267,13 +272,8 @@ resource "aws_instance" "app_server" {
 The first line of a resource block declares a resource type and resource name. 
 The tags argument sets the EC2 instance's name. 
 
-## 4. Initialize your workspace
-Initialize your Terraform workspace with the ```terraform init``` command. Terraform downloads and installs the providers defined in your configuration in your current working directory. Install the plugins Terraform needs to manage the infrastructure.  
-Terraform downloaded the provider and installed it in a hidden ```.terraform``` subdirectory of your current working directory. Terraform also created a file named ```.terraform.lock.hcl``` which specifies the exact provider versions used with your workspace, ensuring consistency between runs.
 
-
-
-## 4. Module
+## Module
 A Terraform module is a reusable and self-contained collection of Terraform configuration files that groups related resources together. Modules help organize infrastructure code, improve reusability, and reduce duplication. Terraform provides a root module by default, and additional child modules can be created or sourced from the Terraform Registry.
 Benefits of Modules:
 
@@ -289,7 +289,7 @@ Benefits of Modules:
 Modules can be your own creations or come from the Terraform Registry, which hosts community-contributed modules.
 
 
-## 5. Variable 
+## Variable 
 Variables in Terraform are placeholders for values that can be passed into your configurations. They make your code more flexible and reusable by allowing you to define values outside of your code and pass them in when you apply the Terraform configuration.
 
 **Input Variables**
@@ -331,7 +331,7 @@ output "root_output" {
 ```
 This allows you to share data and values between different parts of your Terraform configuration and create more modular and maintainable infrastructure-as-code setups.
 
-## 6. Terraform tfvars
+## Terraform tfvars
 Separation of Configuration from Code: Keep variable values outside .tf files, making code reusable and easier to manage across environments.
 Sensitive Information: Can store secrets like passwords, API keys, and credentials, but it is recommended to use secret management solutions (Vault, AWS Secrets Manager, etc.) instead.
 Reusability: Use the same Terraform code with different variable values for multiple environments (Dev, Test, Prod).
@@ -352,7 +352,7 @@ terraform apply -var-file=dev.tfvars
 ```
 .tfvars files help keep infrastructure code flexible, reusable, and environment-specific.
 
-## 7. State File 
+## State File 
 Terraform maintains a state file (often named terraform.tfstate) that keeps track of the current state of your infrastructure. This file is crucial for Terraform to understand what resources have been created and what changes need to be made during updates.
 When you use Terraform to plan and apply changes to your workspace's infrastructure, Terraform compares the last known state in your state file, your current configuration, and data returned by your providers to create its execution plan.
 This file, often named ```terraform.tfstate```, is a JSON or HCL (HashiCorp Configuration Language) formatted
@@ -371,7 +371,7 @@ This file, often named ```terraform.tfstate```, is a JSON or HCL (HashiCorp Conf
 
 **2. Versioning Complexity:** Managing state files in VCS can lead to complex versioning issues, especially when multiple team members are working on the same infrastructure.
 
-### Overcoming Disadvantages with Remote Backends (e.g., S3):
+### Remote Backends (e.g., S3):
 A remote backend stores the Terraform state file outside of your local file system and version control. Using S3 as a remote backend is a popular choice due to its reliability and scalability. Here's how to set it up:
 
 **1. Create an S3 Bucket:** Create an S3 bucket in your AWS account to store the Terraform state. Ensure that the appropriate IAM permissions are set up.
@@ -408,11 +408,11 @@ By following these steps, you can securely store your Terraform state in S3 with
 
 
 
-## 10. Workspace
+## Workspace
 Workspaces in Terraform are a way to manage multiple environments (e.g., development, staging, production) with separate configurations and state files. Workspaces help keep infrastructure configurations isolated and organized.
 
 
-## 13. Conditional Expressions
+## Conditional Expressions
 Conditional expressions in Terraform are used to define conditional logic within your configurations. They allow you to make decisions or set values based on conditions. Conditional expressions are typically used to control whether resources are created or configured based on the evaluation of a condition.
 
 The syntax for a conditional expression in Terraform is:
@@ -430,7 +430,7 @@ resource "aws_instance" "example" {
 ```
 In this example, the count attribute of the aws_instance resource uses a conditional expression. If the create_instance variable is true, it creates one EC2 instance. If create_instance is false, it creates zero instances, effectively skipping resource creation.
 
-## 14. Built-in Functions
+## Built-in Functions
 Terraform provides a wide range of built-in functions that you can use within your configuration files (usually written in HashiCorp Configuration Language, or HCL) to manipulate and transform data. These functions help you perform various tasks when defining your infrastructure. Here are some commonly used built-in functions in Terraform:
 
 **1. concat(list1, list2, ...): Combines multiple lists into a single list.**
@@ -510,7 +510,7 @@ output "joined_string" {
 ```
 These are just a few examples of the built-in functions available in Terraform. You can find more functions and detailed documentation in the official Terraform documentation, which is regularly updated to include new features and improvements
 
-## 15. Provisioners
+# Provisioners
 A Provisioner is used to execute scripts or commands after a resource is created (or before it's destroyed).   
 Think of it as: Resource Creation → Provisioner Runs → Additional Configuration
 
@@ -522,7 +522,7 @@ Copy files
 
 All of this can be done using a provisioner.
 
-### Types of Provisioners
+## Types of Provisioners
 ### 1. file Provisioner 
 The file provisioner is used to copy files or directories from the local machine to a remote machine. This is useful for deploying configuration files, scripts, or other assets to a provisioned instance.
 
