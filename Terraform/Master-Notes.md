@@ -134,6 +134,8 @@ terraform {
 ```~>``` operator is called the pessimistic version constraint. It allows Terraform to use newer compatible versions while preventing upgrades that might introduce breaking changes.  
 For example, The string ~> 5.92 means your configuration supports any version of the provider with a major version of 5 and a minor version greater than or equal to 92.
 
+---
+
 ## Provider
 
 ### Provider Authentication Methods (AWS)
@@ -236,6 +238,7 @@ resource "aws_instance" "example2" {
   provider = aws.us-west-2
 }
 ```
+---
 
 ## Data sources
 You can use data blocks to query your cloud provider for information about other resources. This data source fetches data about the latest AWS AMI that matches the filter, so you do not have to hardcode the AMI ID into your configuration. 
@@ -256,8 +259,55 @@ data "aws_ami" "ubuntu" {
 ```
 In this example, the ```data.aws_ami.ubuntu``` data source loads an AMI for the most recent Ubuntu Noble Numbat release in the region configured for your provider.
 
-## Resource
-A resource is a specific infrastructure component that you want to create and manage using Terraform. Resources can include virtual machines, databases, storage buckets, network components, and more. Each resource has a type and configuration parameters that you define in your Terraform code.
+
+---
+
+# Module
+A Terraform module is a reusable and self-contained collection of Terraform configuration files that groups related resources together. Modules help organize infrastructure code, improve reusability, and reduce duplication.  
+Modules can be your own creations or come from the Terraform Registry, which hosts community-contributed modules.  
+
+Terraform provides a root module by default, and additional child modules can be created or sourced from the Terraform Registry.  
+
+## Types of Modules
+### 1. Root Module
+The Terraform configuration in the current working directory.  
+```
+project/
+├── main.tf
+├── variables.tf
+├── outputs.tf
+```
+Every Terraform project has one root module.
+
+### 2. Child Module
+A module called by another module.
+```
+module "vpc" {
+  source = "./modules/vpc"
+}
+```
+
+Example structure:  
+```
+project/
+├── main.tf
+└── modules/
+    └── vpc/
+        ├── main.tf
+        ├── variables.tf
+        └── outputs.tf
+```
+## Module Components
+### Inputs (variables.tf)
+```
+variable "instance_type" {
+  type = string
+}
+```
+Used to pass values into the module.
+
+### Resource
+A resource is a specific infrastructure component that you want to create and manage using Terraform. Resources can include virtual machines, databases, storage buckets, network components, and more. Each resource has a type and configuration parameters that you define in your Terraform code.  
 main.tf
 ```
 resource "aws_instance" "app_server" {
@@ -272,23 +322,81 @@ resource "aws_instance" "app_server" {
 The first line of a resource block declares a resource type and resource name. 
 The tags argument sets the EC2 instance's name. 
 
+### Outputs (outputs.tf)
+Refer **Output Variables** in Variable section
 
-## Module
-A Terraform module is a reusable and self-contained collection of Terraform configuration files that groups related resources together. Modules help organize infrastructure code, improve reusability, and reduce duplication. Terraform provides a root module by default, and additional child modules can be created or sourced from the Terraform Registry.
-Benefits of Modules:
+### Calling a Module
+```
+module "ec2" {
+  source        = "./modules/ec2"
+  instance_type = "t3.micro"
+}
+```
 
-- **Reusability:** Use the same infrastructure code across multiple projects and environments.
-- **Modularity:** Break complex infrastructure into smaller, manageable components.
-- **Maintainability:** Update infrastructure logic in one place.
-- **Consistency:** Enforce standardized configurations across deployments.
-- **Collaboration:** Teams can work independently on different modules.
-- **Versioning:** Modules can be version-controlled and upgraded safely.
-- **Abstraction:** Hide implementation details and expose only required inputs and outputs.
-- **Scalability:** Supports large and complex infrastructure deployments
+### Module Sources
+#### Local Module
+` source = "./modules/ec2" `
 
-Modules can be your own creations or come from the Terraform Registry, which hosts community-contributed modules.
+#### Git Repository
+` source = "git::https://github.com/company/ec2-module.git" `
 
+#### Terraform Registry
+` source = "terraform-aws-modules/vpc/aws" `
 
+### Provider in Modules (Best Practice)
+Define providers in the root module.
+
+### Module Benefits
+
+* Reusability
+* Modularity
+* Maintainability
+* Consistency
+* Scalability
+
+---
+## locals
+Locals allow storing values that are reused multiple times within a Terraform configuration.  
+Example  
+```
+locals {
+  environment = "dev"
+}
+```
+use:
+```
+resource "aws_s3_bucket" "bucket" {
+  bucket = "myapp-${local.environment}"
+}
+```
+Output: myapp-dev
+
+### Multiple Locals
+```
+locals {
+  env         = "prod"
+  project     = "ecommerce"
+  common_tags = {
+    Environment = local.env
+    Project     = local.project
+  }
+}
+```
+Use ` tags = local.common_tags `
+
+### Why Use Locals?
+Without locals: ` Environment = "prod" ` repeated everywhere.  
+With locals: ` Environment = local.env ` Change once, reflected everywhere.
+
+### Variables vs Locals
+```
+Variables                        Locals
+Input from user                Internal values
+Can change during execution    Defined inside code
+var.name                       local.name
+```
+
+---
 ## Variable 
 Variables in Terraform are placeholders for values that can be passed into your configurations. They make your code more flexible and reusable by allowing you to define values outside of your code and pass them in when you apply the Terraform configuration.
 
@@ -331,7 +439,7 @@ output "root_output" {
 ```
 This allows you to share data and values between different parts of your Terraform configuration and create more modular and maintainable infrastructure-as-code setups.
 
-## Terraform tfvars
+### Terraform tfvars
 Separation of Configuration from Code: Keep variable values outside .tf files, making code reusable and easier to manage across environments.
 Sensitive Information: Can store secrets like passwords, API keys, and credentials, but it is recommended to use secret management solutions (Vault, AWS Secrets Manager, etc.) instead.
 Reusability: Use the same Terraform code with different variable values for multiple environments (Dev, Test, Prod).
@@ -351,6 +459,35 @@ Here's how you typically use .tfvars files
 terraform apply -var-file=dev.tfvars
 ```
 .tfvars files help keep infrastructure code flexible, reusable, and environment-specific.
+
+### Environment Variables in Terraform
+A way to pass values to Terraform variables from the OS/shell instead of hardcoding them in .tfvars files.
+` export TF_VAR_region="ap-south-1" ` 
+
+Terraform variable: ` variable "region" {} `
+
+Terraform automatically maps:
+` TF_VAR_region `  
+to  
+```
+Terraform
+variable "region"
+```
+
+#### they are used in CI/CD Pipelines
+Jenkins/GitHub Actions/Azure DevOps can pass values dynamically.
+```
+export TF_VAR_environment="prod"
+terraform apply
+```
+Avoid Hardcoding
+Instead of: ` db_password = "Password123" ` pass it externally.
+
+**Different Values Per Environment**  
+   export TF_VAR_environment="dev"  
+   export TF_VAR_environment="prod"  
+Same code, different deployment.
+
 
 ## State File 
 Terraform maintains a state file (often named terraform.tfstate) that keeps track of the current state of your infrastructure. This file is crucial for Terraform to understand what resources have been created and what changes need to be made during updates.
@@ -931,3 +1068,145 @@ resource "aws_instance" "web" {
 If the Launch Template changes, the EC2 instance is recreated automatically.
 
 ✅ Useful for immutable infrastructure.
+
+---
+
+# Terraform Dependency
+What is Dependency Management?  
+Terraform automatically determines the order in which resources should be created, modified, or destroyed based on their relationships.
+
+## 1. Implicit Dependency (Most Common)
+An implicit dependency is created automatically when one resource references another resource's attribute. Terraform determines the correct execution order without any manual configuration.
+Example
+```
+resource "aws_vpc" "main" {
+  cidr_block = "10.0.0.0/16"
+}
+
+resource "aws_subnet" "public" {
+  vpc_id = aws_vpc.main.id
+}
+```
+Here ` vpc_id = aws_vpc.main.id ` creates the dependency automatically. so Terraform knows the VPC must be created before the subnet.
+
+## 2. Explicit Dependency
+
+Explicit dependencies are defined using `depends_on` when Terraform cannot automatically determine the relationship between resources.  
+Example:
+```
+resource "aws_vpc" "main" {
+  cidr_block = "10.0.0.0/16"
+}
+
+resource "aws_instance" "web" {
+  ami           = "ami-123456"
+  instance_type = "t2.micro"
+
+  depends_on = [aws_vpc.main]
+}
+```
+Even though the EC2 instance does not reference the VPC directly, Terraform will create the VPC first.
+
+### depends_on Syntax
+Resource Dependency: ` depends_on = [aws_vpc.main] `
+
+### Multiple Dependencies
+```
+depends_on = [
+  aws_vpc.main,
+  aws_security_group.web
+]
+```
+
+### Module Dependency
+```
+module "ec2" {
+  source = "./modules/ec2"
+
+  depends_on = [module.vpc]
+}
+```
+
+#### When Do We Use depends_on?
+
+Use it only when Terraform cannot infer the dependency.  
+Examples:  
+✅ IAM Role before EKS Cluster  
+✅ VPC before Route Configuration  
+✅ Module-to-Module Dependency  
+✅ Resource depends on another resource operationally but not through an attribute reference  
+
+---
+
+## count
+count is used when we need multiple instances of the same resource. Resources are indexed numerically using count.index.  
+Example
+```
+resource "aws_instance" "web" {
+  count         = 3
+  ami           = "ami-123456"
+  instance_type = "t2.micro"
+}
+```
+Creates: aws_instance.web[0], aws_instance.web[1] and aws_instance.web[2]  
+
+Accessing Count Index: ` Name = "server-${count.index}" `  
+When to Use?  
+Multiple identical resources  
+Fixed number of VMs  
+Fixed number of S3 buckets  
+
+**Limitation**  
+If one item is removed from the middle, Terraform may recreate resources because indexing changes.
+
+---
+
+## for_each
+for_each is preferred when resources need unique names or configurations. It uses keys instead of numeric indexes, making resource management more stable than count.  
+Example  
+```
+resource "aws_s3_bucket" "bucket" {
+  for_each = toset(["dev", "test", "prod"])
+
+  bucket = "company-${each.key}"
+}
+```
+
+Creates: company-dev, company-test and company-prod
+
+### Using Map
+```
+variable "instances" {
+  default = {
+    web = "t2.micro"
+    app = "t2.small"
+  }
+}
+
+resource "aws_instance" "server" {
+  for_each = var.instances
+
+  instance_type = each.value
+}
+```
+
+Here:  
+each.key   → web/app  
+each.value → t2.micro/t2.small  
+
+
+### Why Prefer for_each?
+
+Suppose: ["dev","test","prod"]  
+Become: ["dev","prod"]  
+
+With count, indexing changes and resources may be recreated.  
+With for_each, keys remain stable: [dev pro] Only test gets removed.  
+
+
+
+
+
+
+
+
