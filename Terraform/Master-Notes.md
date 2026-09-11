@@ -205,33 +205,31 @@ resource "azurerm_virtual_machine" "example" {
 ```
 
 ### Provider Aliases
-Used when managing multiple accounts or regions.  
-```
-provider "aws" {
-  region = "ap-south-1"
-}
+You can make use of alias keyword to implement multi region infrastructure setup in terraform
+Note: ```provider = aws.us-east-1``` uses the AWS provider alias ```us-east-1``` to create the resource in that specific provider configuration
 
+```hcl
 provider "aws" {
-  alias  = "us"
+  alias = "us-east-1"
   region = "us-east-1"
 }
-```
 
-Use:
-```
-resource "aws_instance" "server" {
-  provider = aws.us
+provider "aws" {
+  alias = "us-west-2"
+  region = "us-west-2"
 }
-```
 
-### Provider Lifecycle
-```
-terraform init
-      |
-Download provider plugins
-      |
-terraform plan
-      |
+resource "aws_instance" "example" {
+  ami = "ami-0123456789abcdef0"
+  instance_type = "t2.micro"
+  provider = aws.us-east-1
+}
+
+resource "aws_instance" "example2" {
+  ami = "ami-0123456789abcdef0"
+  instance_type = "t2.micro"
+  provider = aws.us-west-2
+}
 ```
 
 ## 2. Data sources
@@ -413,34 +411,6 @@ By following these steps, you can securely store your Terraform state in S3 with
 ## 10. Workspace
 Workspaces in Terraform are a way to manage multiple environments (e.g., development, staging, production) with separate configurations and state files. Workspaces help keep infrastructure configurations isolated and organized.
 
-
-## 12. Multiple Region Implementation in Terraform
-You can make use of alias keyword to implement multi region infrastructure setup in terraform
-Note: ```provider = aws.us-east-1``` uses the AWS provider alias ```us-east-1``` to create the resource in that specific provider configuration
-
-```hcl
-provider "aws" {
-  alias = "us-east-1"
-  region = "us-east-1"
-}
-
-provider "aws" {
-  alias = "us-west-2"
-  region = "us-west-2"
-}
-
-resource "aws_instance" "example" {
-  ami = "ami-0123456789abcdef0"
-  instance_type = "t2.micro"
-  provider = "aws.us-east-1"
-}
-
-resource "aws_instance" "example2" {
-  ami = "ami-0123456789abcdef0"
-  instance_type = "t2.micro"
-  provider = "aws.us-west-2"
-}
-```
 
 ## 13. Conditional Expressions
 Conditional expressions in Terraform are used to define conditional logic within your configurations. They allow you to make decisions or set values based on conditions. Conditional expressions are typically used to control whether resources are created or configured based on the evaluation of a condition.
