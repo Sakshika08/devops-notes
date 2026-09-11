@@ -41,9 +41,21 @@ Q: Where is Terraform state stored in AWS?
 In production environments, Terraform state is typically stored in an S3 bucket, 
 while DynamoDB is used for state locking to prevent multiple users from modifying the same infrastructure simultaneously.
 
-Q: What is the difference between Terraform OSS and HCP Terraform?
+## Q: What is the difference between Terraform OSS and HCP Terraform?
 Terraform OSS is the open-source Infrastructure as Code engine used to provision and manage infrastructure. 
 HCP Terraform is HashiCorp's managed platform that provides additional capabilities such as remote state management, collaboration, governance, policy enforcement, and remote execution of Terraform runs. The actual infrastructure provisioning is still performed by Terraform.
+
+## Q. Why use modules?  
+Modules help reduce code duplication, improve reusability, standardize infrastructure, and make Terraform configurations easier to maintain.
+
+## Q. Difference between Root Module and Child Module?  
+Root module is the main Terraform configuration being executed. A child module is called from another module to reuse infrastructure code.
+
+## Q. What are module inputs and outputs?
+Inputs are variables passed into a module, and outputs are values returned from a module for use elsewhere.
+
+## Q. Where do you store reusable infrastructure code?
+In Terraform modules.
 
 ## Q. Why is vpc_cidr defined both in the root module and child module?
 Answer
