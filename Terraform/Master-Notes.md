@@ -12,19 +12,99 @@ Before the advent of IaC:
 ## Terraform
 Terraform is Infrastructure as Code (IaC) tool that allows us to define, provision, and manage infrastructure using declarative configuration files instead of manually creating resources through the cloud console. It helps automate infrastructure management in a consistent, repeatable, and version-controlled manner across cloud providers such as AWS, Azure, and GCP.
 
-## key terminology and concept
+## Terraform Architecture
 
-## 1. Provider: 
-A provider is a plugin for Terraform that defines and manages resources for a specific cloud or infrastructure platform. Examples of providers include AWS, Azure, Google Cloud, and many others. You configure providers in your Terraform code to interact with the desired infrastructure platform.
-providers to manage your resources by calling your cloud provider's APIs. 
+Terraform architecture as 4 main components:  
+```
+Developer
+    |
+Terraform Configuration (.tf files)
+    |
+Terraform Core
+    |
+Provider Plugins (AWS, Azure, GCP, Kubernetes)
+    |
+Target Infrastructure Resources
+```
+### 1. Terraform Configuration
+These are the .tf files where you define infrastructure as code.  
+
+### 2. Terraform Core
+Terraform Core is the brain of Terraform.  
+Responsibilities:  
+* Reads .tf files  
+* Creates execution plan
+* Maintains state file
+* Finds resource dependencies
+* Communicates with providers
+
+Commands acting through Terraform Core:  
+```
+terraform init
+terraform plan
+terraform apply
+terraform destroy
+```
+
+### 3. Provider Plugins
+A Provider is a plugin that enables Terraform to interact with a specific platform by calling its APIs.
+A provider acts as a bridge between Terraform and the target platform. Terraform Core uses providers to communicate with cloud APIs and create, update, or delete resources.
+
+Examples:  
+AWS → hashicorp/aws  
+Azure → hashicorp/azurerm  
+GCP → hashicorp/google  
+Kubernetes → hashicorp/kubernetes  
 
 ```
 provider "aws" {
   region = "ap-south-1"
 }
 ```
-### Provider Authentication Methods (AWS)
-The most secure way to authenticate Terraform with AWS is by using IAM Roles with temporary credentials instead of long-lived access keys. Terraform can assume an IAM Role and obtain temporary credentials from AWS STS, eliminating the need to store AWS access keys and secret keys.
+
+
+Terraform Core does not directly create EC2 instances.  
+Instead:  
+```
+Terraform Core  → AWS Provider  → AWS API  → EC2 Created
+```
+
+### 4. State File
+Terraform stores the current infrastructure state in: ` terraform.tfstate `
+
+Purpose:  
+* Tracks created resources
+* Maps Terraform resources to real resources
+* Helps Terraform detect changes
+
+Example: ` terraform plan `
+Terraform compares:
+```
+Desired State (.tf files)
+        VS
+Current State (tfstate)
+```
+and generates the execution plan.
+
+## Terraform Workflow
+Write Code
+    |
+terraform init
+    |
+Download Providers
+    |
+terraform plan
+    |
+Show Changes
+    |
+terraform apply
+    |
+Create Resources
+    |
+Update State File
+
+
+## Key Terminology and Concept
 
 ### The ```terraform``` block
 **Responsibilities**
@@ -35,30 +115,31 @@ The most secure way to authenticate Terraform with AWS is by using IAM Roles wit
 
 ```
 terraform {
+  required_version = ">= 1.5"
+
   required_providers {
     aws = {
       source  = "hashicorp/aws"
       version = "~> 5.92"
     }
   }
-
-  required_version = ">= 1.2"
 }
+
 ```
 ```source``` - Tells Terraform where to download the provider from.  
 ```version``` - Specifies which provider versions are allowed.  
 ```~>``` operator is called the pessimistic version constraint. It allows Terraform to use newer compatible versions while preventing upgrades that might introduce breaking changes.  
 For example, The string ~> 5.92 means your configuration supports any version of the provider with a major version of 5 and a minor version greater than or equal to 92.
 
-**Terraform Block**: The terraform block manages your Terraform settings, including provider versions and the version of Terraform itself.  
-
-**Provider Block**: Defines how Terraform connects to the provider (AWS, Azure, GCP, etc.).  
-
-**Configuration blocks:** Terraform parses all .tf files in the working directory, allowing you to flexibly organize your configuration.
+### Provider Authentication Methods (AWS)
+The most secure way to authenticate Terraform with AWS is by using IAM Roles with temporary credentials instead of long-lived access keys. Terraform can assume an IAM Role and obtain temporary credentials from AWS STS, eliminating the need to store AWS access keys and secret keys.
+Avoid hardcoded in code:  
+AWS_ACCESS_KEY_ID   
+AWS_SECRET_ACCESS_KEY  
 
 ### Different Ways to Configure Providers in Terraform
-#### In the Root Module
-This is the most common way to configure providers. The provider configuration block is placed in the root module of the Terraform configuration. This makes the provider configuration available to all the resources in the configuration.
+#### In the Root Module (Most common)
+The provider configuration block is placed in the root module of the Terraform configuration. This makes the provider configuration available to all the resources in the configuration.
 
  ```hcl
 provider "aws" {
@@ -88,23 +169,7 @@ resource "aws_instance" "example" {
   depends_on = [module.aws_vpc]
 }
 ```
-#### In the required_providers block
-You can also configure providers in the required_providers block. This is useful if you want to make sure that a specific provider version is used.
-```hcl
-terraform {
-  required_providers {
-    aws = {
-      source = "hashicorp/aws"
-      version = "~> 3.79"
-    }
-  }
-}
 
-resource "aws_instance" "example" {
-  ami = "ami-0123456789abcdef0"
-  instance_type = "t2.micro"
-}
-```
 The best way to configure providers depends on your specific needs. If you are only using a single provider, then configuring it in the root module is the simplest option. If you are using multiple providers, or if you want to reuse the same provider configuration in multiple resources, then configuring it in a child module is a good option. And if you want to make sure that a specific provider version is used, then configuring it in the required_providers block is the best option.
 
 ### Multiple Providers
@@ -138,6 +203,37 @@ resource "azurerm_virtual_machine" "example" {
   size = "Standard_A1"
 }
 ```
+
+### Provider Aliases
+Used when managing multiple accounts or regions.  
+```
+provider "aws" {
+  region = "ap-south-1"
+}
+
+provider "aws" {
+  alias  = "us"
+  region = "us-east-1"
+}
+```
+
+Use:
+```
+resource "aws_instance" "server" {
+  provider = aws.us
+}
+```
+
+### Provider Lifecycle
+```
+terraform init
+      |
+Download provider plugins
+      |
+terraform plan
+      |
+```
+
 ## 2. Data sources
 You can use data blocks to query your cloud provider for information about other resources. This data source fetches data about the latest AWS AMI that matches the filter, so you do not have to hardcode the AMI ID into your configuration. 
 Data sources help keep your configuration dynamic and avoid hardcoded values that can become stale. 
@@ -177,11 +273,7 @@ The tags argument sets the EC2 instance's name.
 Initialize your Terraform workspace with the ```terraform init``` command. Terraform downloads and installs the providers defined in your configuration in your current working directory. Install the plugins Terraform needs to manage the infrastructure.  
 Terraform downloaded the provider and installed it in a hidden ```.terraform``` subdirectory of your current working directory. Terraform also created a file named ```.terraform.lock.hcl``` which specifies the exact provider versions used with your workspace, ensuring consistency between runs.
 
-## 5. Create infrastructure (Terraform workflow)  
-**init** - Initialize your Terraform workspace 
-**Plan** - Preview the changes Terraform will make to match your configuration.
-**Apply** - Make the planned changes.
-**Destroy** - Destroy resources
+
 
 ## 4. Module
 A Terraform module is a reusable and self-contained collection of Terraform configuration files that groups related resources together. Modules help organize infrastructure code, improve reusability, and reduce duplication. Terraform provides a root module by default, and additional child modules can be created or sourced from the Terraform Registry.
@@ -198,8 +290,6 @@ Benefits of Modules:
 
 Modules can be your own creations or come from the Terraform Registry, which hosts community-contributed modules.
 
-## 4. Configuration File
-Terraform uses configuration files (often with a .tf extension) to define the desired infrastructure state. These files specify providers, resources, variables, and other settings. The primary configuration file is usually named main.tf, but you can use multiple configuration files as well.
 
 ## 5. Variable 
 Variables in Terraform are placeholders for values that can be passed into your configurations. They make your code more flexible and reusable by allowing you to define values outside of your code and pass them in when you apply the Terraform configuration.
@@ -318,17 +408,11 @@ In your Terraform configuration, as shown above, provide the DynamoDB table name
 
 By following these steps, you can securely store your Terraform state in S3 with state locking using DynamoDB, mitigating the disadvantages of storing sensitive information in version control systems and ensuring safe concurrent access to your infrastructure. 
 
-## 8. Plan
-A Terraform plan is a preview of changes that Terraform will make to your infrastructure. When you run terraform plan, Terraform analyzes your configuration and current state, then generates a plan detailing what actions it will take during the apply step.
 
-## 9. Apply
-The terraform apply command is used to execute the changes specified in the plan. It creates, updates, or destroys resources based on the Terraform configuration.
 
 ## 10. Workspace
 Workspaces in Terraform are a way to manage multiple environments (e.g., development, staging, production) with separate configurations and state files. Workspaces help keep infrastructure configurations isolated and organized.
 
-## 11. Remote Backend 
-A remote backend is a storage location for your Terraform state files that is not stored locally. Popular choices for remote backends include Amazon S3, Azure Blob Storage, or HashiCorp Terraform Cloud. Remote backends enhance collaboration and provide better security and reliability for your state files.
 
 ## 12. Multiple Region Implementation in Terraform
 You can make use of alias keyword to implement multi region infrastructure setup in terraform
