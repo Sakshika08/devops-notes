@@ -149,6 +149,23 @@ I use create_before_destroy when replacing resources that should remain availabl
 ## Q. When should you avoid create_before_destroy?
 I avoid it when duplicate resources cannot exist simultaneously due to naming restrictions, quota limits, or cost concerns.
 
+## Suppose a developer manually deletes an EC2 instance from the AWS Console, but that instance is still present in the Terraform state and code. What will happen when you run: terraform plan and the terraform apply. How would Terraform know that the resource was deleted outside of Terraform?
+This is a Terraform drift scenario. The EC2 instance was deleted manually from AWS, but Terraform code still defines the resource. During terraform plan, Terraform refreshes the state and compares it with the actual infrastructure. It detects that the instance is missing and shows it needs to be recreated. Running terraform apply will recreate the EC2 instance to match the desired state defined in the Terraform code. In modern Terraform, a separate terraform refresh is generally not required because state refresh happens automatically during plan and apply operations.
+
+## You are using Terraform with: Remote state stored in S3 and State locking using DynamoDB
+One day, an engineer starts terraform apply, but their laptop crashes midway.
+Now another engineer tries to run terraform apply and gets a state lock error.
+Question:
+Why did this happen?
+How would you verify that the lock is genuine and another deployment is not actually running?  
+How would you safely resolve the issue?  
+Which Terraform command would you use?  
+**Answer**  
+Terraform acquires a lock in DynamoDB before modifying the state file. If an engineer's laptop crashes during terraform apply, Terraform may not get a chance to release the lock. As a result, subsequent Terraform operations fail with a state lock error.
+First, I would verify that another deployment is not actively running by checking with the team and reviewing the lock information in DynamoDB. I would also verify that no CI/CD pipeline or automation job is currently executing Terraform.
+If I confirm the lock is stale, I would safely remove it using: ` terraform force-unlock <LOCK_ID> `  
+I would only use force-unlock after confirming no active Terraform operation is running because removing a valid lock could result in state corruption.
+
 ---
 
 ## Terraform Fundamentals
