@@ -1,3 +1,156 @@
+
+
+## Q. Your Terraform apply failed midway. Some resources were created and some were not. What do you do?
+First, I would review the error message and identify the resource that caused the failure.
+
+Since Terraform maintains the current state, resources that were successfully created before the failure are typically already recorded in the state file.
+
+Steps I would follow:
+- Check the error details.
+- Fix the configuration or permission issue.  
+Run: ` terraform plan ` --> to verify the pending changes.
+
+Run: ` terraform apply ` --> again.  
+Terraform compares the state file with the desired configuration and creates only the missing resources.
+
+## Q. Two engineers run terraform apply simultaneously. How do you prevent issues?
+I use remote state with state locking.  
+In AWS:  
+S3 stores the Terraform state file  
+DynamoDB provides state locking.  
+
+When one engineer runs: terraform apply  
+Terraform acquires a lock in DynamoDB.  
+If another engineer tries to run Terraform at the same time, Terraform blocks the operation until the lock is released.
+This prevents:
+- State corruption
+- Race conditions
+- Inconsistent infrastructure
+
+## Q. What happens if the DynamoDB lock is not released?
+Terraform will prevent further operations because the state remains locked. After verifying no Terraform operation is running, I can manually remove the stale lock from DynamoDB or use the force-unlock command.
+` terraform force-unlock LOCK_ID `
+
+## Q. Someone manually modified an AWS resource. How would you detect and fix it?
+This is called Terraform Drift.  
+I would first run: terraform plan  
+Terraform compares the actual infrastructure with the state and configuration and reports any differences.   
+If the manual change is intended i would run ` terraform apply -refresh-only ` and update the Terraform code accordingly.  
+If the change is unauthorized i would directly run `terraform apply` right after terraform plan command to bring the infrastructure back to the desired state defined in code.
+
+## Q. How can drift be prevented in Terraform?
+Infrastructure changes should be made only through Terraform. Manual changes in the cloud console should be avoided, and infrastructure should be managed through code reviews and CI/CD pipelines.
+
+## Q. How do you detect drift without making changes?
+I run: terraform plan  
+Terraform compares the state and configuration against the actual infrastructure and reports any drift.
+
+## Q. A resource was created manually in AWS. How would you bring it under Terraform management?
+I would use Terraform Import.
+` terraform import aws_instance.web i-123456789 `
+After the import, I would update the Terraform configuration so it matches the imported resource.
+
+## Q. You need the same infrastructure for Dev, Test, and Prod. How would you manage it?
+I would use a combination of:
+- Modules
+- Variables
+- Environment-specific .tfvars files  
+Example:
+```
+modules/
+ ├── vpc
+ ├── ec2
+
+dev.tfvars
+test.tfvars
+prod.tfvars
+```
+Deployment:
+terraform apply -var-file=dev.tfvars  
+terraform apply -var-file=test.tfvars OR  
+terraform apply -var-file=prod.tfvars  
+
+The same reusable modules are used across environments, while environment-specific values are supplied through different .tfvars files.
+This approach improves: Reusability, Consistency and Maintainability
+
+## Q. What Terraform features have you actually used in projects?
+In my projects, I have used Terraform modules, variables, outputs, locals, remote state with S3 backend, DynamoDB state locking, Terraform Registry modules, lifecycle rules, count, for_each, dependency management using depends_on, and environment-specific tfvars files to provision and manage AWS infrastructure.
+
+## Q. Your Terraform state file got deleted. What would happen?
+If the Terraform state file is deleted, Terraform loses track of the infrastructure it manages.
+
+As a result:
+- Terraform cannot determine which resources already exist.
+- Future terraform plan and terraform apply operations may attempt to recreate existing resources.
+- Infrastructure management becomes unreliable.
+
+If using a remote backend such as S3, I would restore the state file from the backend or from a backup/versioning mechanism.  
+This is one of the reasons why production environments use:
+- Remote State (S3)
+- S3 Versioning
+- State Backups
+
+## Q. What would you do if the Terraform state becomes corrupted?
+I would restore the state from a backup or, if using S3 backend, from a previous version of the state file. This is why enabling S3 Versioning is a best practice for Terraform state management.
+
+## Q. Why should Terraform state never be stored in Git?
+Terraform state files often contain sensitive information such as:
+- Resource IDs
+- IP addresses
+- Database endpoints
+- Secrets or passwords (depending on the configuration)
+Storing state files in Git can expose sensitive infrastructure data and create security risks.
+
+Additionally:
+- State changes frequently.
+- Merge conflicts are common.
+- Multiple users cannot safely collaborate on local state files.
+Therefore, production environments typically use remote state backends such as S3 instead of Git repositories.
+
+## Q. How would you securely manage secrets in Terraform?
+In production, I would store secrets in a dedicated secret management solution such as:
+- AWS Secrets Manager, HashiCorp Vault or Azure Key Vault
+Terraform retrieves secrets at runtime instead of hardcoding them in `variables.tf` and `terraform.tfvars`
+
+I would also:
+- Use IAM Roles and temporary credentials
+- Mark variables and outputs as sensitive = true
+- Store state in an encrypted remote backend
+- Restrict access to the Terraform state
+This ensures secrets are protected both during execution and at rest.
+
+## Q. Why is storing passwords in terraform.tfvars considered a bad practice?
+Files such as terraform.tfvars can be accidentally committed to Git repositories. Production secrets should be stored in AWS Secrets Manager, HashiCorp Vault, or another dedicated secret management solution.
+
+## Q. Does sensitive=true encrypt secrets?
+No. It only hides values from output. Secrets can still exist in the state file.
+
+## Q. Where can secrets still be exposed even when sensitive = true is used?
+sensitive=true only hides values from Terraform output. Secrets may still exist in the Terraform state file, so the state backend must also be secured.
+
+## Q. How would you force recreation of a resource?
+In modern Terraform, I use: ` terraform apply -replace="aws_instance.web" `  
+Terraform destroys and recreates the specified resource even if there are no configuration changes.
+
+Use cases:
+- Resource is corrupted
+- Resource is in an inconsistent state
+- Re-provisioning is required for troubleshooting
+
+
+## Q. Follow up question: What command was used before -replace?
+Earlier Terraform used: terraform taint aws_instance.web  
+followed by: terraform apply  
+However, terraform taint is deprecated, and -replace is now the recommended approach.
+
+## Q. When would you use create_before_destroy?
+I use create_before_destroy when replacing resources that should remain available during updates, such as EC2 instances behind a load balancer, to minimize downtime.
+
+## Q. When should you avoid create_before_destroy?
+I avoid it when duplicate resources cannot exist simultaneously due to naming restrictions, quota limits, or cost concerns.
+
+---
+
 ## Terraform Fundamentals
 
 ### 1. Q. What is Terraform?
