@@ -107,7 +107,18 @@ Create Resources
     |
 Update State File
 ```
+---
+## Terraform Graph
+Terraform creates a dependency graph of resources before execution and uses it to determine creation and deletion order.
+```
+VPC
+ |
+Subnet
+ |
+EC2
+```
 
+---
 
 ## The ```terraform``` block
 **Responsibilities**
@@ -161,7 +172,7 @@ resource "aws_instance" "example" {
 Eg. azurerm - for Azure
 
 #### In a child module
-You can also configure providers in a child module. This is useful if you want to reuse the same provider configuration in multiple resources.
+You can also pass  providers in a child module. This is useful if you want to reuse the same provider configuration in multiple resources.
 ```hcl
 module "aws_vpc" {
   source = "./aws_vpc"
@@ -177,7 +188,7 @@ resource "aws_instance" "example" {
 }
 ```
 
-The best way to configure providers depends on your specific needs. If you are only using a single provider, then configuring it in the root module is the simplest option. If you are using multiple providers, or if you want to reuse the same provider configuration in multiple resources, then configuring it in a child module is a good option. And if you want to make sure that a specific provider version is used, then configuring it in the required_providers block is the best option.
+The best way to configure providers depends on your specific needs. If you are only using a single provider, then configuring it in the root module is the simplest option. If you are using multiple providers, or if you want to reuse the same provider configuration in multiple resources, then passing it in a child module is a good option. And if you want to make sure that a specific provider version is used, then configuring it in the required_providers block is the best option.
 
 ### Multiple Providers
 You can use multiple providers in one single terraform project. For example,
@@ -488,6 +499,62 @@ Instead of: ` db_password = "Password123" ` pass it externally.
    export TF_VAR_environment="prod"  
 Same code, different deployment.
 
+---
+## Sensitive Variables (sensitive = true)
+Purpose: Used to prevent sensitive values from being displayed in Terraform output, plan, and logs.
+```
+variable "db_password" {
+  type      = string
+  sensitive = true
+}
+```
+
+### What Happens?
+
+Without: ` db_password = "Password123" `  
+Terraform may display: ` db_password = Password123 `
+
+With: ` sensitive = true `
+Terraform displays: ` db_password = (sensitive value) `
+
+### What It Protects
+- Terraform plan output
+- Terraform apply output
+- Terraform outputs
+- CI/CD console logs
+
+### What It Does NOT Protect
+- Does not encrypt the value
+- Does not remove it from Terraform state
+- Does not replace a secret management solution
+
+### Production Best Practice
+
+Store secrets in:
+- AWS Secrets Manager
+- HashiCorp Vault
+- Azure Key Vault
+
+Then use: sensitive = true
+
+Example:
+```
+data "aws_secretsmanager_secret_version" "db" {
+  secret_id = "prod/db-password"
+}
+
+variable "db_password" {
+  sensitive = true
+}
+```
+The password comes from AWS Secrets Manager, but Terraform may still use that value during planning and applying.
+
+sensitive = true is used to prevent Terraform from displaying sensitive values such as passwords, API keys, and tokens in plan, apply, and output logs. It does not encrypt the value or remove it from the state file.
+sensitive = true is not a replacement for a secret management solution. It only prevents secrets from being displayed in Terraform plans, outputs, and logs. In production, secrets are typically stored in Vault or a cloud secret manager, while sensitive = true provides an additional layer of protection against accidental exposure during Terraform execution.
+ 
+ key point: Secret Manager protects where the secret is stored; sensitive = true protects where the secret is displayed.
+
+---
 
 ## State File 
 Terraform maintains a state file (often named terraform.tfstate) that keeps track of the current state of your infrastructure. This file is crucial for Terraform to understand what resources have been created and what changes need to be made during updates.
@@ -570,22 +637,23 @@ In this example, the count attribute of the aws_instance resource uses a conditi
 ## Built-in Functions
 Terraform provides a wide range of built-in functions that you can use within your configuration files (usually written in HashiCorp Configuration Language, or HCL) to manipulate and transform data. These functions help you perform various tasks when defining your infrastructure. Here are some commonly used built-in functions in Terraform:
 
-**1. concat(list1, list2, ...): Combines multiple lists into a single list.**
-```hcl
-variable "list1" {
-  type    = list
-  default = ["a", "b"]
+**1. lookup()**  
+Used to retrieve a value from a map using a key.
+```
+variable "instance_type" {
+  default = {
+    dev  = "t2.micro"
+    prod = "t2.large"
+  }
 }
 
-variable "list2" {
-  type    = list
-  default = ["c", "d"]
-}
-
-output "combined_list" {
-  value = concat(var.list1, var.list2)
+output "type" {
+  value = lookup(var.instance_type, "dev")
 }
 ```
+Output: t2.micro
+
+Use Case: Selecting environment-specific values.
 
 **2. element(list, index): Returns the element at the specified index in a list.**
 ```hcl
@@ -608,7 +676,82 @@ output "list_length" {
 }
 ```
 
-**3. map(key, value): Creates a map from a list of keys and a list of values.**
+count = length(var.instances)  
+length() returns the number of items in a collection and is commonly used with count.
+
+**3.merge()**  
+Combines multiple maps into one.  
+```
+locals {
+  common_tags = {
+    Project = "Ecommerce"
+  }
+
+  env_tags = {
+    Environment = "Prod"
+  }
+}
+
+output "tags" {
+  value = merge(local.common_tags, local.env_tags)
+}
+```
+Output:
+```
+{
+  Project     = "Ecommerce"
+  Environment = "Prod"
+}
+```
+Use Case: Combining common and environment-specific tags.
+
+
+**4. lookup(map, key): Retrieves the value associated with a specific key in a map.**
+```hcl
+variable "my_map" {
+  type    = map(string)
+  default = {"name" = "Alice", "age" = "30"}
+}
+
+output "value" {
+  value = lookup(var.my_map, "name") # Returns "Alice"
+}
+join(separator, list):  # Joins the elements of a list into a single string using the specified separator.
+variable "my_list" {
+  type    = list
+  default = ["apple", "banana", "cherry"]
+}
+
+output "joined_string" {
+  value = join(", ", var.my_list) # Returns "apple, banana, cherry"
+}
+```
+**5. split()**  
+Splits a string into a list.
+` split(",", "dev,test,prod") `
+
+OutPut: ` ["dev","test","prod"] `
+
+
+#### Rarely asked
+
+**1. concat(list1, list2, ...): Combines multiple lists into a single list.**
+```hcl
+variable "list1" {
+  type    = list
+  default = ["a", "b"]
+}
+
+variable "list2" {
+  type    = list
+  default = ["c", "d"]
+}
+
+output "combined_list" {
+  value = concat(var.list1, var.list2)
+}
+```
+**2. map(key, value): Creates a map from a list of keys and a list of values.**
 ```hcl
 variable "keys" {
   type    = list
@@ -625,26 +768,6 @@ output "my_map" {
 }
 ```
 
-**4. lookup(map, key): Retrieves the value associated with a specific key in a map.**
-```hcl
-variable "my_map" {
-  type    = map(string)
-  default = {"name" = "Alice", "age" = "30"}
-}
-
-output "value" {
-  value = lookup(var.my_map, "name") # Returns "Alice"
-}
-join(separator, list): Joins the elements of a list into a single string using the specified separator.
-variable "my_list" {
-  type    = list
-  default = ["apple", "banana", "cherry"]
-}
-
-output "joined_string" {
-  value = join(", ", var.my_list) # Returns "apple, banana, cherry"
-}
-```
 These are just a few examples of the built-in functions available in Terraform. You can find more functions and detailed documentation in the official Terraform documentation, which is regularly updated to include new features and improvements
 
 # Provisioners
@@ -1203,10 +1326,95 @@ Become: ["dev","prod"]
 With count, indexing changes and resources may be recreated.  
 With for_each, keys remain stable: [dev pro] Only test gets removed.  
 
+---
+
+## Terraform Dynamic Blocks 
+Dynamic blocks are used to generate repeated nested blocks dynamically instead of writing the same configuration multiple times.
+
+Dynamic Block Example:
+```
+variable "ports" {
+  default = [22, 80, 443]
+}
+
+resource "aws_security_group" "web" {
+
+  dynamic "ingress" {
+    for_each = var.ports
+
+    content {
+      from_port = ingress.value
+      to_port   = ingress.value
+      protocol  = "tcp"
+    }
+  }
+}
+```
+
+Terraform automatically creates:
+```
+ingress {
+  from_port = 22
+}
+
+ingress {
+  from_port = 80
+}
+
+ingress {
+  from_port = 443
+}
+```
+
+Syntax
+```
+dynamic "<block_name>" {
+
+  for_each = <collection>
+
+  content {
+    ...
+  }
+}
+```
+
+### When Do We Use Dynamic Blocks?
+Security Group Rules: Ingress and Egress  
+Load Balancer Rules   
+Route Tables  
+IAM Policy Statements  
+Any Repeated Nested Block  
 
 
+### Difference between for_each and Dynamic Blocks
+for_each is used to create multiple resources, while dynamic blocks are used to create multiple nested configuration blocks inside a resource. Dynamic blocks help reduce repetitive code when configuring structures such as security group ingress or egress rules.
 
+---
 
+# Terraform Taint / Untaint (Deprecated)
 
+### Taint
+Marks a resource for forced recreation during the next terraform apply.
 
+`terraform taint aws_instance.web ` → Terraform marks the resource as tainted in the state file.
 
+Next apply: ` terraform apply `  
+Terraform performs:  
+Destroy old resource  
+Create new resource  
+
+### What is Untaint?
+
+Removes the taint mark from a resource.  
+`terraform untaint aws_instance.web ` → Resource will no longer be recreated during the next apply.
+
+### Why Was Taint Deprecated?  
+Since Terraform v0.15.2, HashiCorp recommends:  
+```
+terraform apply -replace="aws_instance.web"
+```
+Instead of ` terraform taint aws_instance.web` and  ` terraform apply `  
+Because -replace shows the replacement directly in the plan and apply workflow, making changes safer and easier to review.
+
+## Modern Approach
+` Terraform apply -replace="aws_instance.web" ` → Force recreation of a resource even if there are no configuration changes.
