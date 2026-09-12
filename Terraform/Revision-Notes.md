@@ -17,12 +17,71 @@
 
 Terraform is HashiCorp's Infrastructure as Code tool used to provision and manage infrastructure through declarative configuration files.
   
-# Key Terraform Concepts
+---
+## Terraform Architecture
 
-**Terraform Block**  
-The terraform block manages your Terraform settings, including provider versions and the version of Terraform itself.
+Terraform architecture as 4 main components:  
+```
+Developer
+    |
+Terraform Configuration (.tf files)
+    |
+Terraform Core
+    |
+Provider Plugins (AWS, Azure, GCP, Kubernetes)
+    |
+Target Infrastructure Resources
+```
+erraform Core Responsibilities
+Reads Terraform code
+Creates execution plan
+Maintains state
+Resolves dependencies
+Communicates with providers
 
-## 1. Provider
+Terraform Core does not directly create resources.
+
+---
+## Terraform Workflow
+```
+Write Code
+    |
+terraform init
+    |
+Download Providers
+    |
+terraform plan
+    |
+Show Changes
+    |
+terraform apply
+    |
+Create Resources
+    |
+Update State File
+```
+terraform init
+Downloads providers
+Installs plugins
+Initializes backend
+Creates .terraform directory
+Creates .terraform.lock.hcl
+
+---
+
+## Terraform Graph
+Terraform builds a dependency graph before execution and determines the correct creation and destruction order.
+Example:
+```
+VPC
+ ↓
+Subnet
+ ↓
+EC2
+```
+---
+
+## Provider
 Plugin used to interact with cloud platforms (AWS, Azure, GCP). Defines where Terraform creates resources.
 
 Example:
@@ -32,23 +91,63 @@ provider "aws" {
 }
 ```
 
-**Provider Configuration Methods**
-1. Root Module (most common)
-2. Child Module
-3. required_providers block (version control)
+### Provider Configuration Methods
+- Root Module (Most Common)
+- Child Module Provider Passing
+- required_providers Block
+
+### Multi Region Deployment
+Use provider alias to deploy resources in multiple AWS regions.  
+Define multiple providers with alias.  
+Specify provider in resource using provider = aws.alias_name.  
+
+```
+provider "aws" {
+  alias = "east"
+}
+
+provider "aws" {
+  alias = "west"
+}
+```
+Remember: Alias = Same Cloud + Different Region
+
+---
+### Provider Authentication
+
+Production Best Practice:
+- IAM Roles
+- Temporary Credentials
+- No hardcoded keys
+
+Avoid:  
+AWS_ACCESS_KEY_ID  
+AWS_SECRET_ACCESS_KEY
+
+---
+
+## Terraform Block
+Used to configure Terraform itself.  
+Responsibilities:  
+- Terraform version
+- Provider versions
+- Backend configuration
 
 Example:
-```hcl
+```
 terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 3.79"
+      version = "~> 5.0"
     }
   }
 }
 ```
-## 2. Resource
+**~> Operator:** Allows compatible updates while preventing breaking version upgrades.
+
+---
+## Resource
 Actual infrastructure component managed by Terraform.
 Examples:
 - EC2 Instance
@@ -62,10 +161,23 @@ resource "aws_instance" "web" {
   instance_type = "t2.micro"
 }
 ```
+---
+## Data Sources
+Used to read existing infrastructure without creating it.  
+Example: ` data "aws_ami" "ubuntu" {} `
+
+Common Uses:
+- Latest AMI lookup
+- Existing VPC lookup
+- Existing Subnet lookup
+
+Memory Trick:
+Data Source = Read Existing Resource
+Resource = Create/Manage Resource
 
 ---
 
-## 3. Module
+## Module
 Reusable collection of Terraform code. Helps avoid duplication.  
 Benefits:
 - Reusability
@@ -96,7 +208,7 @@ variables.tf
 outputs.tf  
 providers.tf  
 
-## 5. Variables
+## Variables
 **Input Variable:** Used to receive values.
 ```hcl
 variable "instance_type" {
@@ -121,7 +233,7 @@ Environment variables are used to externalize application configuration such as 
 
 ---
 
-## 6. Terraform tfvars
+## Terraform tfvars
 **variables.tf** defines variables, while **terraform.tfvars** provides actual values for those variables during deployment.
 ```variable "instance_type" {}```
 
@@ -134,13 +246,32 @@ Advantages:
 - Reusability
 - Team collaboration
 
-## 7. State File
+---
+## Sensitive Variables (sensitive = true)
+Purpose: Used to prevent sensitive values from being displayed in Terraform output, plan, and logs.
+```
+variable "db_password" {
+  type      = string
+  sensitive = true
+}
+```
+
+sensitive = true hides secrets from Terraform output and logs, but secrets should still be stored in a dedicated secret management solution and the Terraform state must be secured.
+
+---
+
+## State File
 File: ``` terraform.tfstate ```
+
+Terraform compares:  
+` Desired State (.tf files) ` VS ` Current State (terraform.tfstate) `
+and generates an execution plan.
 
 Purpose:
 - Tracks current infrastructure state.  
 - Maps Terraform resources to real-world resources.
-- Terraform compares the state file with the configuration code to determine what needs to be created, updated, or destroyed.  
+- Terraform compares the state file with the configuration code to determine what needs to be created, updated, or destroyed.
+
 
 **Why Important?**
 - Tracks created resources.
@@ -162,33 +293,37 @@ Implemented using DynamoDB.
 - S3 → State Storage
 - DynamoDB → State Locking
 
-## 8. Plan
+## Plan
 Command: ``` terraform plan ```
 
 Purpose:
 Preview changes before deployment.  
 Shows create/update/delete actions.
 
-## 9. Apply
+## Apply
 Command: ```terraform apply```
 Purpose: Executes changes defined in the plan.
 
-## 10. Workspace
-Used to manage multiple environments.
+## Workspace
 
-Examples:
-Dev
-Test
-Prod
+Used to manage multiple environments with separate state files.
 
-Commands:
-```
+Example:
+dev
+test
+prod
+
+Same Terraform code
+Different state file per workspace
+
+Common Commands:
 terraform workspace list
 terraform workspace new dev
 terraform workspace select dev
-```
 
-## 11. Remote Backend
+---
+
+## Remote Backend
 Stores state remotely instead of locally.
 
 Examples:
@@ -203,24 +338,9 @@ Benefits:
 - Backup
 - Multiple Providers
 
-## 12. Multi-Region Deployment
-Use provider alias to deploy resources in multiple AWS regions.  
-Define multiple providers with alias.  
-Specify provider in resource using provider = aws.alias_name.  
+---
 
-Remember: Alias = Same cloud, different regions.
-
-```
-provider "aws" {
-  alias = "east"
-}
-
-provider "aws" {
-  alias = "west"
-}
-```
-
-## 13. Conditional Expression
+## Conditional Expression
 **Syntax:** ```condition ? true_value : false_value```
 
 **Common Use:** ```count = var.create_instance ? 1 : 0```
@@ -230,16 +350,18 @@ Remember: Used to create/skip resources based on a condition.
 Important Built-in Functions
 | Function  | Purpose  |
 |---------- |---------- |
-| concat()  | Combine lists  |
-| element() | Get item by index  |
+| merge()   | Combines multiple maps into one  |
+| split()   | Splits a string into a list.  |
 | length()  | Count elements  |
 | lookup()  | Get value from map  |
 | join()    | Convert list to string  |
 
-## 14. Provisioner 
+---
+
+## Provisioner 
 Executes scripts/commands after resource creation (or before destruction).
 
-###Types
+### Types
 
 **local-exec**
 Runs on Terraform machine.
@@ -308,7 +430,94 @@ Terraform drift occurs when the actual infrastructure differs from the Terraform
 
 ## One-Line Interview Answer
 
-**terraform import** brings an existing unmanaged resource into Terraform state for the first time, whereas   
+**terraform import** brings an existing unmanaged resource into Terraform state for the first time  
+**Drift** = Existing managed resource changed outside Terraform  
 **terraform plan/apply -refresh-only** synchronizes Terraform state with the current state of resources that are already being managed by Terraform.
+
+---
+## Lifecycle Meta-Arguments
+Used to control resource creation, update, and deletion behavior.
+
+### create_before_destroy
+Creates new resource first, then deletes old resource.
+
+### prevent_destroy
+Prevents accidental deletion of critical resources.
+
+### ignore_changes
+Terraform ignores changes to selected attributes.
+
+### replace_triggered_by
+Recreates resource when another resource changes.
+
+---
+## Terraform Dependency Management
+Implicit Dependency = Terraform detects automatically through resource references.   
+Explicit Dependency = Manually defined using depends_on.    
+depends_on = Used only when Terraform cannot infer the dependency.   
+Best Practice = Prefer implicit dependency over explicit dependency.   
+
+---
+## count vs for_each
+### count
+- Uses numeric index
+- Best for identical resources
+- Uses count.index
+
+### for_each
+- Uses keys
+- Best for unique resources
+- Uses each.key and each.value
+
+Preferred:
+for_each because resource tracking is more stable.
+
+---
+## locals
+Reusable internal values  
+Accessed using local.<name>  
+Commonly used for tags, naming standards, and repeated values  
+
+These three topics are asked very frequently in Terraform interviews.
+
+---
+
+## Dynamic Blocks
+
+Dynamic blocks are used to generate repeated nested blocks dynamically instead of writing the same configuration multiple times.
+
+**Common Uses:**
+- Security Group Rules (Ingress/Egress)
+- Load Balancer Rules
+- Route Tables
+- IAM Policy Statements
+- Any repeated nested block
+
+**Syntax:**
+```hcl
+dynamic "<block_name>" {
+  for_each = <collection>
+
+  content {
+    ...
+  }
+}
+```
+
+Dynamic Block Loop for nested blocks inside a resource.
+for_each = Loop for creating multiple resources.
+
+---
+
+## Taint / Untaint (Deprecated)
+
+terraform taint aws_instance.web  - Marks resource for recreation on next apply. 
+
+terraform untaint aws_instance.web - Removes taint mark.
+
+Deprecated since Terraform v0.15.2.
+
+Modern replacement: terraform apply -replace="aws_instance.web"  
+
 
 
