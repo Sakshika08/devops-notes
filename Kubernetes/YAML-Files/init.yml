@@ -1,0 +1,11 @@
+initContainers:
+- name: wait-for-db
+  image: busybox
+  command:
+  - sh
+  - -c
+  - |
+    until nc -z postgres-service 5432; do
+      echo "Waiting for DB..."
+      sleep 5
+    done
