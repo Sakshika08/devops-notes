@@ -170,6 +170,15 @@ This means metrics are retained for 15 days.
 
 ---
 
+## Why is Prometheus called a Time-Series Database?
+Time series: A metric stored over time.  
+Because over time it stores:
+- Metric
+- Timestamp
+- Value
+
+---
+
 ### How Does Prometheus Store Data?
 
 Prometheus stores data in its built-in Time-Series Database (TSDB).
@@ -246,6 +255,15 @@ It deploys:
 - kube-state-metrics
 
 ServiceMonitors and PodMonitors are used for service discovery and metric scraping.
+
+---
+## What is ServiceMonitor?
+A Kubernetes CRD used by Prometheus Operator to automatically discover and scrape Kubernetes Services.
+
+---
+
+## What is PodMonitor?
+A Kubernetes CRD used by Prometheus Operator to scrape metrics directly from Pods.
 
 ---
 
