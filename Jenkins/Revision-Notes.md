@@ -1,40 +1,40 @@
 
 # Jenkins
-Open-source CI/CD automation server
-Automates Build → Test → Deploy
-Pipeline as Code using Jenkinsfile
-Declarative (preferred) vs Scripted (flexible)
+Open-source CI/CD automation server  
+Automates Build → Test → Deploy  
+Pipeline as Code using Jenkinsfile  
+Declarative (preferred) vs Scripted (flexible)  
 
 ## End-to-End Flow
 Git Push → Webhook → Jenkins → Build → Test → SonarQube → Docker Image → ECR → Helm → Kubernetes → Monitoring
 
-Build Once → Test Once → Deploy Many  
-CI proves code is deployable. CD delivers it safely.
+Build Once → Test Once → Deploy Many   
+CI proves code is deployable. CD delivers it safely.  
 
 # Controller vs Agent
 ## Controller
-Stores pipeline definitions and Persists pipeline state
-Scheduling
-Pipeline orchestration
-Credentials
-Build history
+Stores pipeline definitions and Persists pipeline state  
+Scheduling  
+Pipeline orchestration  
+Credentials  
+Build history  
 
 ## Agent
-Executes build/test/deploy
-Has workspace
-Can be VM, Container, K8s Pod
+Executes build/test/deploy  
+Has workspace  
+Can be VM, Container, K8s Pod  
 
 Controller orchestrates, Agent executes.
 
 Never run heavy builds on controller.
 
 # Executors
-Executor = job slot, not machine
-Controls concurrency
-1 agent + 2 executors = 2 parallel jobs
-Best Practice
-Controller = 0 executors
-Kubernetes agents = usually 1 executor/pod
+Executor = job slot, not machine  
+Controls concurrency    
+1 agent + 2 executors = 2 parallel jobs  
+Best Practice  
+Controller = 0 executors  
+Kubernetes agents = usually 1 executor/pod  
 
 Isolation > Parallelism
 
@@ -44,32 +44,30 @@ Controller → K8s Plugin → Pod Created → Build Runs → Pod Deleted
 
 Benefits:
 
-Dynamic scaling
-Isolation
-Lower cost
-Ephemeral builds
-Workspace vs Pipeline State
-Workspace
-Agent
-Stores code/artifacts
-Pipeline State
-Controller
-Stores progress/checkpoints
+Dynamic scaling  
+Isolation  
+Lower cost  
+Ephemeral builds  
+
+
+### Workspace vs Pipeline State  
+#### Workspace  
+Agent: Stores code/artifacts
+
+#### Pipeline State
+Controller: Stores progress/checkpoints
 
 Workspace stores files; Controller stores state.
 
 ## Build Queue
-
-Job waits when:
-
-No executor
-Agent offline
-Label mismatch
+Job waits when:  
+No executor  
+Agent offline  
+Label mismatch   
 
 Queue protects Jenkins from overload.
 
 ## Pipeline Lifecycle
-
 Trigger → Pipeline Initialized → Agent Allocated → Stages → Post → Results Stored
 
 ---
@@ -89,9 +87,9 @@ Controller restart interrupts orchestration. Agent restart interrupts execution.
 
 Purpose:
 
-Reusable pipeline code
-Reduce duplication
-Thin Jenkinsfiles
+Reusable pipeline code  
+Reduce duplication  
+Thin Jenkinsfiles  
 
 Thin Jenkinsfile + Shared Library = Production standard
 
@@ -106,12 +104,12 @@ The shared library would be versioned to allow controlled updates, ensuring chan
 
 Keep:
 
-Same pipeline
-Multiple combinations
-Parallel execution
+Same pipeline  
+Multiple combinations 
+Parallel execution  
 
 Example:
-Java:  
+Java:   
 8   
 11  
 17  
@@ -124,16 +122,15 @@ Result = 6 executions
 
 Gold line: Matrix builds increase validation coverage without duplicating pipelines.
 
-# Missing Topic 6: Fail-Fast vs Fail-Safe
-
-Fail Fast
-Build failure  
-Unit test failure  
-Docker build failure  
+# Fail-Fast vs Fail-Safe
+Fail Fast:  
+Build failure    
+Unit test failure    
+Docker build failure    
 “Anything that makes the artifact invalid must stop immediately"
 
-Fail Safe
-Sonar warning  
+Fail Safe:  
+Sonar warning   
 Optional reports  
 Non-blocking scans  
 
