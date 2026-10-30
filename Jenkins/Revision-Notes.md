@@ -79,7 +79,7 @@ Pipeline can resume
 
 ## Agent Restart
 Execution interrupted
-Stage may fail/retry
+Stage may fail/retry  
 
 Controller restart interrupts orchestration. Agent restart interrupts execution.
 
@@ -179,7 +179,7 @@ stage('Quality scan') {
     catchError(buildResult: 'SUCCESS', sttageREsult: 'FAILURE') {
 	  sh 'sonar-scan.sh'
 	}
-  }
+  }w
 }
 
 ```
@@ -224,17 +224,17 @@ Prevents multiple runs of same pipeline from modifying same resources.
 Runs even on failure.
 
 Used for:
-Cleanup
-Notifications
-Reporting
+Cleanup  
+Notifications  
+Reporting  
 
 
 ## Approval Stages
 
 Used for:
-Production Deployments
-Terraform Apply
-Database Migrations
+Production Deployments  
+Terraform Apply  
+Database Migrations  
 ```
 stage('Approve Production') {
   steps{
@@ -268,15 +268,12 @@ CI proves correctness. CD manages risk.
 
 # Multibranch Pipelines
 Automatically discovers:
-Branches
-Pull Requests
-PR
+Branches  
+Pull Requests 
 
-Validation only
+PR: Validation only  
 
-Main
-
-Validation + Deploy
+Main: Validation + Deploy
 
 PR = Untrusted Main = Trusted
 
@@ -335,10 +332,10 @@ Pipeline-level conditions > shell if/else
 
 Common:
 
-String
-Choice
-Boolean
-Password
+String  
+Choice  
+Boolean  
+Password  
 
 Use case: Deploy same artifact to Dev/Staging/Prod
 ```
@@ -408,79 +405,75 @@ kubectl rollout undo
 # Common Failures
 
 ## Jenkins Slowdown Causes
-Build history accumulation
-Logs accumulation
-Artifact accumulation
-Too many plugins
-Controller overload
+Build history accumulation  
+Logs accumulation    
+Artifact accumulation  
+Too many plugins  
+Controller overload  
 
 ## Controller
-UI slow
-Queues
-Scheduling issues
+UI slow   
+Queues  
+Scheduling issues  
 
 ## Agent
-Offline
-Disk full
-OOM
-Docker missing
+Offline  
+Disk full  
+OOM  
+Docker missing  
 
 ## Pipeline
-Wrong conditions
-Wrong variables
+Wrong conditions  
+Wrong variables  
 
 ## External
-Git unavailable
-ECR unavailable
-Cloud API issue
+Git unavailable  
+ECR unavailable  
+Cloud API issue  
 
 ---
 
 # Debug Order
-Pipeline logs
-Agent status
-Conditions
-External dependencies
+Pipeline logs  
+Agent status  
+Conditions  
+External dependencies  
 
 ---
 # Production Deployment Failure
-Stabilize
-Rollback if required
-Find failed stage
-Check logs
-Fix root cause
-Prevent recurrence
+Stabilize  
+Rollback if required  
+Find failed stage  
+Check logs  
+Fix root cause  
+Prevent recurrence  
 
 ---
 
 # Jenkins Stability
 
 Main causes:
-
-Controller overload
-Plugin problems
-Resource exhaustion
-Poor pipeline design
+Controller overload  
+Plugin problems  
+Resource exhaustion  
+Poor pipeline design  
 
 Monitor:
-
-CPU
-Memory
-Disk
+CPU  
+Memory  
+Disk  
 
 ---
 ## Backup & Recovery
 
-Backup:
-
+Backup:  
 JENKINS_HOME
 
 Contains:
-
-Jobs
-Credentials
-Plugins
-Build history
+Jobs  
+Credentials  
+Plugins  
+Build history  
 
 If controller lost:
 
@@ -490,19 +483,16 @@ Reconnect agents
 ---
 
 # Interview Gold Lines
-Controller orchestrates, agents execute.
-Executors control parallelism, not capacity.
-Isolation > Parallelism.
-Workspace stores files; controller stores state.
-CI proves code is deployable; CD delivers it safely.
-Build once, deploy many.
-PR pipelines validate; main pipelines deliver.
-Approval rights must be stricter than execution rights.
-Pipelines fail on agents more often than on Jenkins.
-Stabilize → Debug → Prevent.
-Metrics first, logs second.
-If you rebuild for production, you're deploying something you never tested.
+Controller orchestrates, agents execute.  
+Executors control parallelism, not capacity.  
+Isolation > Parallelism.  
+Workspace stores files; controller stores state.  
+CI proves code is deployable; CD delivers it safely.  
+Build once, deploy many.  
+PR pipelines validate; main pipelines deliver.  
+Approval rights must be stricter than execution rights.  
+Pipelines fail on agents more often than on Jenkins.  
+Stabilize → Debug → Prevent.  
+Metrics first, logs second.  
 
----
----
 ---
