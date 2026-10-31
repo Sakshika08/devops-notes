@@ -1142,6 +1142,8 @@ resource "aws_instance" "web" {
 Prevents downtime during replacement.
 
 ### 2. prevent_destroy
+**How do you protect a production database from accidental deletion?  
+Q: A production RDS database must never be deleted accidentally. What would you use?**  
 
 Prevents accidental deletion of critical resources.  
 ```
@@ -1156,6 +1158,7 @@ If someone runs: ` terraform destroy ` Terraform will throw an error instead of 
 Useful for Production DBs, S3 buckets, EKS clusters.
 
 ### 3. ignore_changes
+**Q: Terraform keeps trying to revert tags modified by another team. How do you stop it?**
 
 Tells Terraform to ignore changes to specific attributes.  
 ```
@@ -1177,7 +1180,8 @@ terraform plan will not show changes.
 
 ### 4. replace_triggered_by
 
-Forces resource recreation when another resource changes.
+Forces resource recreation when another resource changes.  
+replace_triggered_by forces a resource replacement when the referenced resource or value changes.
 ```
 resource "aws_instance" "web" {
 
