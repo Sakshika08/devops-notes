@@ -198,6 +198,18 @@ Source = Location of module (local path, Git, Registry).
 
 Modules = Reusability + Standardization + Less Duplication
 
+### Module Versioning
+```
+module "vpc" {
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "5.0.0"
+}
+```
+**Why version modules?**  
+Consistency
+Avoid breaking changes
+Reproducible deployments
+
 ---
 
 ## 4. Configuration Files
@@ -481,7 +493,27 @@ Commonly used for tags, naming standards, and repeated values
 These three topics are asked very frequently in Terraform interviews.
 
 ---
+## Null Resource
+null_resource is a placeholder resource that does not create any infrastructure. It is mainly used to execute provisioners such as local-exec or remote-exec, trigger workflows, or model dependencies when no actual cloud resource needs to be managed. Historically it was used for automation tasks, although modern Terraform prefers alternatives like terraform_data and external CI/CD tools.
 
+```
+resource "null_resource" "example" {
+  provisioner "local-exec" {
+    command = "echo Hello"
+  }
+}
+```
+Used when no real infrastructure resource exists but Terraform execution is needed.
+
+### terraform_data Resource
+
+Modern replacement for many null_resource use cases.  
+terraform_data is a built-in resource introduced to replace many null_resource patterns while avoiding provider dependencies.
+
+null_resource = dummy resource often used as a workaround.  
+terraform_data = native Terraform resource for storing values, dependencies, and triggering behavior without managing real infrastructure.
+
+---
 ## Dynamic Blocks
 
 Dynamic blocks are used to generate repeated nested blocks dynamically instead of writing the same configuration multiple times.
@@ -506,6 +538,10 @@ dynamic "<block_name>" {
 
 Dynamic Block Loop for nested blocks inside a resource.
 for_each = Loop for creating multiple resources.
+
+---
+## Backend Migration
+` terraform init -migrate-state ` migrate Local state → S3 backend
 
 ---
 
