@@ -5,7 +5,7 @@
 Before the advent of IaC:
 - **Manual Server Configuration** – Infrastructure was configured manually.
 - **No Version Control** – Changes were difficult to track and audit.
-- **Documentation-Driven Processes** – Relied heavily on manual documentation.
+- **Documentation-DriveFn Processes** – Relied heavily on manual documentation.
 - **Limited Automation** – Increased operational effort and human error.
 - **Slow Provisioning** – Infrastructure deployment was time-consuming.
 
@@ -107,6 +107,7 @@ Create Resources
     |
 Update State File
 ```
+
 ---
 ## Terraform Graph
 Terraform creates a dependency graph of resources before execution and uses it to determine creation and deletion order.
@@ -554,6 +555,9 @@ sensitive = true is not a replacement for a secret management solution. It only 
  
  key point: Secret Manager protects where the secret is stored; sensitive = true protects where the secret is displayed.
 
+### Variable Management
+Variable Management allows Terraform Cloud workspaces to securely store Terraform variables and environment variables, including sensitive values such as passwords, tokens, and cloud credentials, without storing them in code.
+
 ---
 
 ## State File 
@@ -610,8 +614,10 @@ In your Terraform configuration, as shown above, provide the DynamoDB table name
 
 By following these steps, you can securely store your Terraform state in S3 with state locking using DynamoDB, mitigating the disadvantages of storing sensitive information in version control systems and ensuring safe concurrent access to your infrastructure. 
 
+### Remote Runs
+Remote Runs execute Terraform plans and applies inside Terraform Cloud instead of on a user's local machine, providing consistency, centralized auditing, and secure credential management.
 
-
+---
 ## Workspace
 Workspaces in Terraform are a way to manage multiple environments (e.g., development, staging, production) with separate configurations and state files. Workspaces help keep infrastructure configurations isolated and organized.
 
@@ -1422,3 +1428,7 @@ Because -replace shows the replacement directly in the plan and apply workflow, 
 
 ## Modern Approach
 ` Terraform apply -replace="aws_instance.web" ` → Force recreation of a resource even if there are no configuration changes.
+
+---
+## Policy Enforcement
+Policy Enforcement allows organizations to define governance rules that Terraform deployments must satisfy before they can be applied. Common policies enforce approved regions, mandatory tagging, security standards, and cost controls.
