@@ -1,3 +1,13 @@
+### Q. Tell me about a challenging CI/CD issue
+One challenge I faced was repeated pipeline failures at the SonarQube stage after stricter Quality Gate rules were introduced. Several builds that previously passed started failing, which impacted release timelines.
+
+I reviewed the SonarQube reports and identified that the failures were due to critical vulnerabilities and code quality issues. I worked with developers to understand the findings and prioritize remediation.
+
+We fixed the critical issues, improved code quality practices, and updated our development workflow to address these findings earlier in the SDLC.
+
+After that, pipeline success rates improved and we had fewer production issues related to code quality.
+
+The key lesson was that integrating quality checks early helps prevent problematic code from reaching production.
 
 1. Jenkins job stuck in queue
 
@@ -103,3 +113,63 @@ check resources
 ```
 Agent is offline. What do you do?
 "If an agent is offline, I first verify whether the problem is connectivity, agent failure, resource exhaustion, or configuration related. I check if the agent machine or Kubernetes pod is running, verify connectivity to the Jenkins controller, review agent logs, and check CPU, memory, and disk usage. Once the root cause is identified, I restore the agent and confirm it reconnects before re-running the pipeline."
+
+
+
+### Q. A Jenkins pipeline is taking 40 minutes to complete, but earlier it used to finish in 10 minutes.
+
+How would you investigate and identify the bottleneck?
+✅ Check stage-wise execution time
+
+First determine whether Build, Test, SonarQube, Docker Build, ECR Push, or Deployment is slow.
+
+✅ Check Jenkins agent health
+
+CPU utilization
+Memory utilization
+Disk utilization
+
+✅ Check workspace cleanup issues
+
+Large workspaces can slow down Git checkout and builds.
+
+✅ Check Docker build performance
+
+Large images
+Missing layer caching
+Multi-stage build opportunities
+Additional points that would make it even stronger
+
+1. Queue Time
+
+Sometimes the pipeline itself is fast, but jobs are waiting in queue.
+
+Not enough executors
+Busy agents
+
+2. Recent Changes
+
+Ask:
+
+What changed when the pipeline became slow?
+
+For example:
+
+New test cases added  
+New SonarQube rules
+Larger Docker image
+Additional pipeline stages
+
+3. External Dependencies
+
+Check whether:
+SonarQube server is slow
+ECR is responding slowly
+Kubernetes API server is slow
+Artifact repository is slow
+
+4. Build Logs Comparison
+Compare:
+Old successful run (10 min)
+New slow run (40 min)
+Stage-by-stage duration comparison often reveals the bottleneck immediately.
