@@ -19,7 +19,6 @@ Terraform is HashiCorp's Infrastructure as Code tool used to provision and manag
   
 ---
 ## Terraform Architecture
-
 Terraform architecture as 4 main components:  
 ```
 Developer
@@ -32,12 +31,12 @@ Provider Plugins (AWS, Azure, GCP, Kubernetes)
     |
 Target Infrastructure Resources
 ```
-erraform Core Responsibilities
-Reads Terraform code
-Creates execution plan
-Maintains state
-Resolves dependencies
-Communicates with providers
+Terraform Core Responsibilities
+- Reads Terraform code
+- Creates execution plan
+- Maintains state
+- Resolves dependencies
+- Communicates with providers
 
 Terraform Core does not directly create resources.
 
@@ -46,26 +45,20 @@ Terraform Core does not directly create resources.
 ```
 Write Code
     |
-terraform init
+terraform init ➜ Download Providers
     |
-Download Providers
+terraform plan ➜  Show Changes
     |
-terraform plan
-    |
-Show Changes
-    |
-terraform apply
-    |
-Create Resources
+terraform apply ➜ Create Resources
     |
 Update State File
 ```
 terraform init
-Downloads providers
-Installs plugins
-Initializes backend
-Creates .terraform directory
-Creates .terraform.lock.hcl
+- Downloads providers
+- Installs plugins
+- Initializes backend
+- Creates .terraform directory
+- Creates .terraform.lock.hcl
 
 ---
 
@@ -176,7 +169,6 @@ Data Source = Read Existing Resource
 Resource = Create/Manage Resource
 
 ---
-
 ## Module
 Reusable collection of Terraform code. Helps avoid duplication.  
 Benefits:
@@ -197,6 +189,30 @@ Output = Value returned from a module.
 Source = Location of module (local path, Git, Registry).  
 
 Modules = Reusability + Standardization + Less Duplication
+
+Terraform modules can call other modules. A parent module or root module references a child module using the module block and passes inputs through variables. The child module can expose outputs, which can then be consumed by other modules. This helps create reusable, modular infrastructure components such as VPC, Security Group, EC2, and EKS modules that can be combined together to build complete environments.
+```
+terraform-project/
+├── main.tf          ← Root module
+└── modules/
+    └── ec2/
+        ├── main.tf       ← Child Module (logic)
+        ├── variables.tf  ← Child Module (ex: variable "ami_id" {})
+        └── outputs.tf    ← Child Module
+```
+
+```
+module "vpc" {
+  source = "./modules/vpc"
+}
+
+module "security_group" {
+  source = "./modules/security-group"
+
+  vpc_id = module.vpc.vpc_id
+}
+```
+
 
 ### Module Versioning
 ```
