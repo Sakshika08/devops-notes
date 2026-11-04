@@ -1,4 +1,7 @@
-
+## Q. Tell me about a Terraform issue you handled.
+One Terraform issue I handled was a state lock problem. A Terraform deployment pipeline failed during execution, and all subsequent runs started failing with "Error acquiring the state lock." I first verified that no Terraform job was currently running in the CI/CD platform to avoid disrupting an active deployment. Then I checked the DynamoDB lock table and found a stale lock entry left behind by the failed pipeline. After confirming it was safe to do so, I removed the lock using terraform force-unlock and reran the pipeline successfully. The key lesson was to always verify that no active Terraform deployment is running before removing a lock.
+(Forcefully removing a lock while an active apply is in progress can allow multiple Terraform operations to modify the same infrastructure simultaneously, which may lead to inconsistent infrastructure state and deployment failures.)
+`terraform force-unlock <LOCK_ID>`
 
 ## Q. Your Terraform apply failed midway. Some resources were created and some were not. What do you do?
 First, I would review the error message and identify the resource that caused the failure.
