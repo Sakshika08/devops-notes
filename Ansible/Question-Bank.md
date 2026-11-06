@@ -232,6 +232,19 @@ A template is a Jinja2-based file that renders variables dynamically before bein
 What is Ansible Vault?  
 Ansible Vault is used to encrypt and securely store sensitive data such as passwords, tokens, and API keys.
 
+## If an Ansible playbook execution fails,how do you trobleshoot?
+If an Ansible playbook execution fails, I first check the exact error message in the playbook output using increased verbosity: ` ansible-playbook playbook.yml -vvv `  
+This provides detailed information about the failed task, module, and target host.  
+
+Next, I identify the task that failed and verify its parameters, variables, and syntax. If required, I validate the playbook syntax using: ` ansible-playbook playbook.yml --syntax-check `  
+
+Then, I check inventory and connectivity to the target hosts: ` ansible all -m ping `  
+This helps determine whether SSH access or authentication is causing the issue.  
+If the failure is related to variables, I verify that all required variables are defined and have the correct values. I also review inventory files, group variables, and host variables.  
+For module-specific failures, I check the target server logs and validate prerequisites such as package repositories, permissions, disk space, network connectivity, or service availability.  
+Finally, I rerun the playbook after fixing the issue and verify that all tasks complete successfully.
+
+---
 -m = Module to run
 -a = Arguments for that module
 `ansible all -m ping`   
