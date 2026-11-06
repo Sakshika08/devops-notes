@@ -379,3 +379,8 @@ Datadog Agent
 ###  Explain the difference way in which prometheus can get metrics ?
 Prometheus supports two metric collection models: pull-based and push-based. In our organization, most metrics are collected using the pull model, where applications expose a /metrics endpoint and Prometheus scrapes it at regular intervals.Developers expose the required application metrics, and Prometheus is configured to discover and scrape those targets.  
 For short-lived jobs such as batch jobs or temporary containers, we use Pushgateway, where applications push metrics before terminating. Pull-based collection is generally preferred because it is simpler, more reliable, and allows Prometheus to detect target availability.
+
+
+## How do you monitor pod CPU and memory usage in Prometheus without using Grafana?
+We use Prometheus metrics and PromQL queries to monitor pod CPU and memory utilization. For CPU, I query `container_cpu_usage_seconds_total`, and for memory, I use `container_memory_working_set_bytes`. During troubleshooting, I compare the actual usage against the configured requests and limits and look for signs such as high resource consumption, CPU throttling, pod restarts, or OOMKilled events.  
+I also monitor pod restarts, OOMKilled events, and throttling metrics to identify application or resource-related issues.
