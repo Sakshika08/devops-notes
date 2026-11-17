@@ -1,6 +1,19 @@
 # HELM
 ---
 
+ 
+` helm template . `
+ 
+
+ 
+
+
+ 
+` helm diff upgrade my-app . `
+
+
+
+---
 ## 🔥 Q. How do you check what values are currently used by a Helm release?
 ` helm get values <release-name> `  
 To see all values including defaults: ` helm get values <release-name> --all `  
@@ -43,16 +56,6 @@ helm list
 kubectl get all
 ```
 This removes Kubernetes resources managed by that Helm release.
-
----
-## 🔥 Q. Difference between `helm template` and `helm install`?
-` helm template my-app . `  
-Renders Kubernetes manifests locally. Does not connect to Kubernetes and Does not deploy resources
-
-` helm install my-app . `  
-- Renders templates. Creates resources in the cluster and Creates a Helm release
-
-**One-Liner:** `helm template` generates manifests, while `helm install` generates and deploys them.
 
 ---
 ## 🔥 Q. What is the difference between a Helm Chart and a Helm Release?
