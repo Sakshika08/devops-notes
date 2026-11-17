@@ -1,13 +1,6 @@
 # HELM
 ---
-## suppose if you are installing/upgrading k8s deployment using helm and helm package not installed/failed, how do you troubleshoot?
-If a Helm deployment fails, I first check the Helm release status using 1helm status <release-name>`. This tells me whether the release is in a failed, pending-install, or pending-upgrade state.  
-Then I review the installation output using `helm install --dry-run --debug`. This helps identify YAML syntax errors, missing values, template rendering issues, or chart configuration problems.  
-Next, I check Kubernetes events using `kubectl get events -n <namespace>` to look for scheduling failures, image pull errors, volume mount issues, or resource constraints.  
-After that, I inspect the pods using `kubectl describe pod <pod-name> - n namespace` and review application logs with `kubectl logs <pod-name>`. This helps identify runtime issues such as application startup failures, missing ConfigMaps or Secrets, and connectivity problems.  
-Finally, I validate the rendered manifests using helm template and verify that the cluster has sufficient CPU, memory, storage, and all required dependencies. Based on the findings, I fix the issue and redeploy the release.
 
----
 ## 🔥 Q. How do you check what values are currently used by a Helm release?
 ` helm get values <release-name> `  
 To see all values including defaults: ` helm get values <release-name> --all `  
@@ -53,31 +46,23 @@ This removes Kubernetes resources managed by that Helm release.
 
 ---
 ## 🔥 Q. Difference between `helm template` and `helm install`?
-### helm template
-` helm template my-app . `
-- Renders Kubernetes manifests locally
-- Does not connect to Kubernetes
-- Does not deploy resources
+` helm template my-app . `  
+Renders Kubernetes manifests locally. Does not connect to Kubernetes and Does not deploy resources
 
-### helm install
 ` helm install my-app . `  
-- Renders templates
-- Creates resources in the cluster
-- Creates a Helm release
+- Renders templates. Creates resources in the cluster and Creates a Helm release
 
 **One-Liner:** `helm template` generates manifests, while `helm install` generates and deploys them.
 
 ---
 ## 🔥 Q. What is the difference between a Helm Chart and a Helm Release?
-### Helm Chart
-A chart is a package containing Kubernetes templates and configuration.
+A **chart** is a package containing Kubernetes templates and configuration.
 Example: nginx-chart
 
-### Helm Release
-A release is a deployed instance of a chart.  
+A **release** is a deployed instance of a chart.  
 Example:
-dev-nginx  
-prod-nginx  
+- dev-nginx  
+- prod-nginx  
 One chart can be installed multiple times, creating multiple releases.
 
 **One-Liner:** A Chart is the blueprint, and a Release is the running instance of that chart.
@@ -134,117 +119,26 @@ post-delete
 ```
 ---
 ## 🔥 Q. How do you list all Helm releases in a cluster?
-```bash
-helm list -A
-```
-
+` helm list -A `  
 This displays releases across all namespaces.
 
 Useful for:
-
 - Release discovery
 - Troubleshooting
 - Audits
-
----
-
-## 🔥 Q. Release is showing `pending-upgrade`. What will you do?
-Check release status:
-
-```bash
-helm status <release>
-```
-
-Check release history:
-
-```bash
-helm history <release>
-```
-
-Inspect deployment rollout:
-
-```bash
-kubectl rollout status deployment/<deployment-name>
-```
-
-Common causes:
-
-- Interrupted upgrade
-- Timeout
-- New pods failing readiness checks
-- CrashLoopBackOff
-- Resource shortage
-
-Rollback if necessary:
-
-```bash
-helm rollback <release> <revision>
-```
-
----
-
-## 🔥 Q. Values.yaml changed but application still uses old configuration. Why?
-Verify deployed values:
-
-```bash
-helm get values <release>
-```
-
-Check release history:
-
-```bash
-helm history <release>
-```
-
-Inspect deployment:
-
-```bash
-kubectl describe deployment <deployment-name>
-```
-
-Verify:
-
-- Upgrade was executed
-- Correct values file used
-- ConfigMap mounted correctly
-- Application reloads config
-
-If required:
-
-```bash
-kubectl rollout restart deployment <deployment-name>
-```
-
-Common causes:
-
-- Upgrade not executed
-- Wrong values file
-- ConfigMap changes not picked up
-
 ---
 
 ## 🔥 Q. How do you upgrade an existing Helm release?
-Review changes:
+Review changes: ` helm diff upgrade ` 
 
-```bash
-helm diff upgrade
-```
-
-Perform upgrade:
-
-```bash
-helm upgrade <release-name> <chart> -f values.yaml
-```
-
+Perform upgrade: `helm upgrade <release-name> <chart> -f values.yaml `  
 Validate:
-
 ```bash
 helm status <release-name>
 kubectl rollout status deployment/<deployment-name>
 ```
 
 Monitor:
-
 - Pods
 - Application logs
 - Metrics
@@ -253,67 +147,7 @@ Monitor:
 Rollback if required.
 
 ---
-
-## 🔥 Q. What if Helm rollback also fails?
-
-Check release history:
-
-```bash
-helm history <release>
-```
-
-Investigate:
-
-- Previous image deleted from registry
-- Database schema incompatibility
-- Missing Secrets
-- Invalid configuration
-
-Possible actions:
-
-- Redeploy last stable image
-- Restore missing configuration
-- Recover dependencies
-- Coordinate with application team
-
-**Senior-Level Point:**
-
-Helm rollback restores Kubernetes resources, but it does not automatically revert database schema changes.
-
----
-
 ## 🔥 Q. How do you troubleshoot a Helm chart before deployment?
-Validate chart:
-
-```bash
-helm lint .
-```
-
-Render manifests:
-
-```bash
-helm template .
-```
-
-Perform dry run:
-
-```bash
-helm install my-app . \
---dry-run \
---debug
-```
-
-Verify:
-
-- Manifests
-- Image tags
-- Resource settings
-- ConfigMaps
-- Secret references
-- Environment variables
-
-**One-Liner:**
-
 I always lint, template, and perform a dry run before deploying a chart to production.
 
 ---
@@ -322,7 +156,6 @@ I always lint, template, and perform a dry run before deploying a chart to produ
 ```bash
 helm upgrade --install my-app chart/ --atomic
 ```
-
 Behavior:
 - Upgrade starts
 - Deployment validation happens
@@ -330,243 +163,111 @@ Behavior:
 - Previous working revision gets restored
 
 **Interview One-Liner:**
-
 The `--atomic` flag makes deployments safer because Helm automatically rolls back failed upgrades.
 
 ---
-## 🔥 Q. Helm status shows deployed, but no pods exist. What would you check?
-Inspect rendered resources:
+# Scenario Based
 
-```bash
-helm get manifest <release>
-```
+## Helm Install/Upgrade Fails. How Would You Troubleshoot?
+If a Helm deployment fails, I first check the Helm release status using ` helm status <release-name>`. This tells me whether the release is in a failed, pending-install, or pending-upgrade state.   
+Then I review the installation output using `helm install --dry-run --debug`. This helps identify YAML syntax errors, missing values, template rendering issues, or chart configuration problems.  
+Then i will YAML errors, Template issues, Missing values or Invalid chart structure using `helm lint` command.  
+Next, I check Kubernetes events using `kubectl get events -n <namespace>` to look for scheduling failures, image pull errors, volume mount issues, or resource constraints.   
+After that, I inspect the pods using `kubectl describe pod <pod-name> - n namespace` and review application logs with `kubectl logs <pod-name>`. This helps identify runtime issues such as application startup failures, missing ConfigMaps or Secrets, and connectivity problems.  
+Finally, I validate the rendered manifests using helm template and verify that the cluster has sufficient CPU, memory, storage, and all required dependencies. Based on the findings, I fix the issue and redeploy the release.
 
-Check resources:
 
-```bash
-kubectl get all
-```
-
-Verify:
-
-- Deployment exists
-- Replica count
-- Namespace
-- Selectors
-- Template conditions
-
-Common causes:
-
-- Wrong values
-- Disabled templates
-- Namespace mismatch
-- Replica count set to zero
-
-**Strong Closing Line:**
-
-If Helm shows deployed but no pods exist, I verify whether the chart actually created a Deployment and whether replicas were successfully scheduled.
-
----
-
-Scenari
-
----
-
-## 🔥 Q. Helm Install Fails. How Do You Troubleshoot?
-
-If a Helm install fails, I first determine whether the issue is caused by the chart itself or by the Kubernetes cluster. Then I investigate step by step.
-
-### Step 1: Check release status
-
-```bash
-helm status <release-name>
-```
-
+**Step 3: Render the manifests** ` helm template . `
 👉 Verify:
-
-- Failed install state
-- Resource creation status
-- Error details
-
-### Step 2: Validate the chart
-
-```bash
-helm lint .
-```
-
-👉 Check for:
-
-- YAML errors
-- Template issues
-- Missing values
-- Invalid chart structure
-
-### Step 3: Render the manifests
-
-```bash
-helm template .
-```
-
-👉 Verify:
-
 - Deployment definitions
 - Service definitions
 - ConfigMaps
 - Secrets
-
-### Step 4: Run a dry run
-
-```bash
-helm install my-app . --dry-run --debug
-```
-
-👉 Helps identify:
-
-- Template rendering errors
-- Invalid configuration
-- Missing variables
-
-### Step 5: Check Kubernetes events
-
-```bash
-kubectl get events -n <namespace>
-```
-
-👉 Look for:
-
-- Scheduling failures
-- Resource constraints
-- Admission controller rejections
-
-### 🔥 Strong Closing Line
-
-For Helm install failures, I first isolate chart-level issues using lint and dry-run, then investigate cluster-side issues if the chart is valid.
-
 ---
 
 ## 🔥 Q. Helm Upgrade Failed in Production. How Would You Troubleshoot?
+If a Helm upgrade fails in production, I first determine whether the issue is related to the Helm release, Kubernetes resources, or the application itself.
 
-If a Helm upgrade fails in production, I first determine whether the issue is related to the Helm release, Kubernetes resources, or the application itself. Then I troubleshoot step by step.
-
-### Step 1: Check release status
-
+**Step 1: Check release status**  
 ```bash
 helm status <release>
 helm history <release>
 ```
-
 👉 Verify:
-
 - Failed revision
 - Upgrade status
 - Previous successful deployment
 
-### Step 2: Verify deployed values
-
-```bash
-helm get values <release>
-```
-
+**Step 2: Verify deployed values** using ` helm get values <release> `  
 👉 Confirm:
-
 - Correct values file used
 - Expected image tag deployed
 - Configuration changes applied
 
-### Step 3: Check deployment rollout
-
+**Step 3: Check deployment rollout**  
 ```bash
 kubectl rollout status deployment/<deployment>
 kubectl rollout history deployment/<deployment>
 ```
-
 👉 Verify:
-
 - New rollout started
 - Deployment completed
 - ReplicaSet updated
 
-### Step 4: Check pod status
-
+**Step 4: Check pod status**  
 ```bash
 kubectl get pods
 kubectl describe pod <pod>
 ```
-
 👉 Look for:
-
 - CrashLoopBackOff
 - Pending pods
 - ImagePullBackOff
 - Readiness failures
 
-### Step 5: Review application logs
-
-```bash
-kubectl logs <pod>
-```
-
+**Step 5: Review application logs**  ` kubectl logs <pod> `  
 👉 Verify:
-
 - Startup issues
 - Missing Secrets
 - Configuration problems
 - Dependency failures
 
-### Step 6: Roll back if required
-
-```bash
-helm rollback <release> <revision>
-```
-
+**Step 6: Roll back if required** ` helm rollback <release> <revision> `  
 👉 Use when:
-
 - Production impact is high
 - Upgrade is unstable
 - Fast recovery is required
 
-### 🔥 Strong Closing Line
-
-I first determine whether the problem is chart-related, Kubernetes-related, or application-related, and perform rollback if business impact is significant.
-
-
-## 🔥 Q. Release Is Showing Pending-Upgrade. What Will You Do?
-
-If a release is stuck in pending-upgrade, I first determine whether the upgrade was interrupted or Kubernetes resources are failing to become healthy. Then I investigate step by step.
+---
+## 🔥 Q. Helm Upgrade Stuck / Release Showing Pending-Upgrade. How Would You Troubleshoot?
+If a release is stuck in pending-upgrade, I first determine whether the upgrade was interrupted or Kubernetes resources are failing to become healthy.
 
 ### Step 1: Check Helm release status
-
 ```bash
 helm status <release>
 helm history <release>
 ```
 
 👉 Verify:
-
 - Current release status
 - Failed revision
 - Upgrade progress
 
 ### Step 2: Check deployment rollout
-
 ```bash
 kubectl rollout status deployment/<deployment>
 kubectl rollout history deployment/<deployment>
 ```
-
 👉 Verify:
-
 - Deployment progress
 - Replica availability
 - Rollout completion
 
 ### Step 3: Check pod status
-
 ```bash
 kubectl get pods
 kubectl describe pod <pod>
 ```
-
 👉 Look for:
 
 - CrashLoopBackOff
@@ -575,296 +276,174 @@ kubectl describe pod <pod>
 - ImagePullBackOff
 
 ### Step 4: Check application logs
-
 ```bash
 kubectl logs <pod>
 ```
-
 👉 Verify:
-
 - Startup failures
 - Runtime exceptions
 - Missing dependencies
 
 ### Step 5: Check cluster events
-
-```bash
-kubectl get events -n <namespace>
-```
+` kubectl get events -n <namespace> `
 
 👉 Look for:
-
 - Scheduling failures
 - Resource shortages
 - PVC issues
 - Node problems
 
 ### Step 6: Roll back if necessary
-
-```bash
-helm rollback <release> <revision>
-```
+` helm rollback <release> <revision> `
 
 👉 Use when:
-
 - Upgrade cannot recover
 - Service is impacted
 - Quick recovery is needed
 
-### 🔥 Strong Closing Line
-
-A pending-upgrade state usually means Helm is waiting for Kubernetes resources to become healthy. I identify the failing resource and either fix the issue or roll back to the last stable revision.
-
 ---
 
 ## 🔥 Q. Values.yaml Changed But Application Still Uses Old Configuration. Why?
+If values.yaml is updated but the application still uses the old configuration, I first verify whether the Helm upgrade was applied successfully and whether Kubernetes picked up the configuration changes. 
 
-If values.yaml is updated but the application still uses the old configuration, I first verify whether the Helm upgrade was applied successfully and whether Kubernetes picked up the configuration changes. Then I investigate step by step.
-
-### Step 1: Verify deployed values
-
-```bash
-helm get values <release>
-```
-
+**Step 1: Verify deployed values** ` helm get values <release> `  
 👉 Confirm:
-
 - Updated values are deployed
 - Correct values file was used
 
-### Step 2: Check release history
-
-```bash
-helm history <release>
-```
-
+**Step 2: Check release history** ` helm history <release> `  
 👉 Verify:
-
 - Upgrade completed successfully
 - Latest revision is active
 
-### Step 3: Check rendered manifests
-
-```bash
-helm get manifest <release>
-```
-
+**Step 3: Check rendered manifests** ` helm get manifest <release> `  
 👉 Verify:
-
 - Updated ConfigMap exists
 - Updated Secret exists
 - Templates rendered correctly
 
-### Step 4: Verify deployment rollout
-
-```bash
-kubectl rollout status deployment/<deployment>
-```
-
+**Step 4: Verify deployment rollout** ` kubectl rollout status deployment/<deployment> `  
 👉 Verify:
-
 - New pods were created
 - Rollout completed successfully
 
-### Step 5: Verify ConfigMap or Secret usage
-
-```bash
-kubectl describe pod <pod>
-```
-
+**Step 5: Verify ConfigMap or Secret usage** ` kubectl describe pod <pod> `  
 👉 Check:
-
 - Correct ConfigMap mounted
 - Correct Secret mounted
 - Updated environment variables
 
-### Step 6: Check whether application reloads configuration
-
+**Step 6: Check whether application reloads configuration**  
 👉 Common real-world issue:
-
 - ConfigMap updated ✅
 - Pod restarted ✅
 - Application still using old configuration ❌
 
-If required:
+If required rollout ` kubectl rollout restart deployment/<deployment> `
 
-```bash
-kubectl rollout restart deployment/<deployment>
-```
-
-### 🔥 Strong Closing Line
-
+### 🔥 Strong Closing Line 
 Even if values.yaml is updated, the application will continue using the old configuration unless the Helm upgrade succeeds and the application loads the updated configuration.
 
 ---
-
 ## 🔥 Q. Helm Status Shows Deployed, But No Pods Exist. What Would You Check?
-
 If Helm shows the release as deployed but no pods are running, I first verify whether the chart actually created Kubernetes workload resources. Then I investigate step by step.
 
-### Step 1: Check rendered resources
-
-```bash
-helm get manifest <release>
-```
-
+**Step 1: Check rendered resources** ` helm get manifest <release> `  
 👉 Verify:
-
 - Deployment exists
 - StatefulSet exists
 - DaemonSet exists
 
-### Step 2: Check cluster resources
-
-```bash
-kubectl get all -n <namespace>
-```
-
+**Step 2: Check cluster resources** `kubectl get all -n <namespace> `   
 👉 Verify:
-
 - Deployment created
 - ReplicaSet created
 - Pods created
 
-### Step 3: Check deployment configuration
-
-```bash
-kubectl describe deployment <deployment>
-```
-
+**Step 3: Check deployment configuration** ` kubectl describe deployment <deployment> `  
 👉 Verify:
-
 - Replica count
 - Label selectors
 - Pod template configuration
 
-### Step 4: Check namespace
-
-```bash
-kubectl get deployments --all-namespaces
-```
+**Step 4: Check namespace** ` kubectl get deployments --all-namespaces `
 
 👉 Verify:
-
 - Resources are deployed in the expected namespace
 - Namespace mismatch is not the issue
 
-### Step 5: Check values used by the release
-
-```bash
-helm get values <release>
-```
-
+**Step 5: Check values used by the release** ` helm get values <release> `  
 👉 Verify:
-
 - Replica count is not set to 0
 - Deployment template is enabled
 - Environment-specific values are correct
 
-### Step 6: Check cluster events
-
-```bash
-kubectl get events -n <namespace>
-```
-
+**Step 6: Check cluster events** ` kubectl get events -n <namespace> `  
 👉 Look for:
-
 - Failed scheduling
 - Quota violations
 - Resource shortages
 - Admission controller rejections
 
 ### 🔥 Strong Closing Line
-
 If Helm reports the release as deployed but no pods exist, I verify whether the chart actually created workload resources and whether Kubernetes successfully attempted to schedule the expected replicas.
 
 ---
-
 ## 🔥 Q. What If Helm Rollback Also Fails?
+If a Helm rollback fails, I first determine whether the issue is related to Kubernetes resources, application dependencies, or the rollback revision itself. 
 
-If a Helm rollback fails, I first determine whether the issue is related to Kubernetes resources, application dependencies, or the rollback revision itself. Then I investigate step by step.
-
-### Step 1: Check release history
-
-```bash
-helm history <release>
-```
-
+**Step 1: Check release history** ` helm history <release> `  
 👉 Verify:
-
 - Available revisions
 - Last known stable revision
 - Failed revisions
 
-### Step 2: Check rollback status
-
-```bash
-helm status <release>
-```
-
+**Step 2: Check rollback status** ` helm status <release> `   
 👉 Verify:
-
 - Current release state
 - Rollback progress
 - Error details
 
-### Step 3: Check pod status
-
+**Step 3: Check pod status**   
 ```bash
 kubectl get pods
 kubectl describe pod <pod>
 ```
-
 👉 Look for:
-
 - CrashLoopBackOff
 - ImagePullBackOff
 - Failed mounts
 - Readiness failures
 
-### Step 4: Check application logs
-
-```bash
-kubectl logs <pod>
-```
-
+**Step 4: Check application logs** ` kubectl logs <pod> `    
 👉 Verify:
-
 - Startup failures
 - Configuration errors
 - Dependency failures
 
-### Step 5: Verify external dependencies
-
+**Step 5: Verify external dependencies**  
 👉 Check:
-
 - Previous image still exists in registry
 - Required Secrets exist
 - Required ConfigMaps exist
 - Database connectivity
 - External service connectivity
 
-### Step 6: Check for database or schema changes
-
+**Step 6: Check for database or schema changes**  
 👉 Very important:
-
 - Application rollback may succeed
 - Database schema may remain changed
 - Older application version may become incompatible
 
-### Step 7: Recover using last known stable version if required
-
+**Step 7: Recover using last known stable version if required**  
 ```bash
 helm upgrade <release> <chart> \
 --set image.tag=<stable-version>
 ```
-
 👉 Use when:
-
 - Rollback revision is unusable
 - Previous artifacts are unavailable
 - Quick service restoration is required
 
 ### 🔥 Strong Closing Line
-
 Helm rollback restores Kubernetes resources, but it does not automatically revert database schema changes or external dependencies. I verify that the previous application version can still run successfully before considering the rollback complete.
