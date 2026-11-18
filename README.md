@@ -52,5 +52,17 @@ if [ "$ERROR_COUNT" -gt "$THRESHOLD" ]; then
 fi
 ```
 
+## 🔥 Q. Please explain your day-to-day activities as a DevOps Engineer.
+In my current role, my day typically starts with reviewing monitoring dashboards, alerts, and overnight incidents to ensure all applications and infrastructure are healthy.  
+A significant part of my work involves managing and monitoring AWS resources such as EC2, EKS, ALB, IAM, and S3. I regularly review CloudWatch, Grafana, and Prometheus dashboards to identify performance issues, resource bottlenecks, or any critical alerts.  
+I also support application deployments by maintaining CI/CD pipelines using Jenkins and GitHub Actions. This includes reviewing build failures, troubleshooting deployment issues, and ensuring releases are deployed successfully across environments.  
+For containerized workloads, I manage Kubernetes clusters and perform activities such as deployments, scaling, troubleshooting pod issues, and Helm-based application upgrades.  
+I work with Terraform to provision and maintain infrastructure as code, ensuring infrastructure changes are version-controlled and repeatable.  
+Another important part of my role is troubleshooting. This may include investigating application issues, Kubernetes problems, AWS infrastructure issues, CI/CD failures, or performance-related incidents.  
+I also collaborate closely with development teams by supporting deployments, managing environment configurations, handling Secrets and access controls, and helping resolve operational challenges.  
+Throughout the day, I continuously monitor alerts, incidents, and production health to ensure system reliability and minimize downtime. 
+
+---
+
 ## Author
 Sakshi Kale
