@@ -78,6 +78,69 @@
 `helm package .` → Packages a Helm chart into a versioned `.tgz` archive.
 
 ---
+## Q. Difference Between helm install and helm upgrade
+`helm install` creates a release, while `helm upgrade` modifies an existing release.
+
+## Q. Difference Between helm install and helm upgrade --install
+`helm install my-app .` → Fails if the release already exists.  
+
+`helm upgrade --install my-app .`  
+→ Installs if release does not exist.
+→ Upgrades if release already exists.
+
+## Q. Difference Between ConfigMap and values.yaml
+`values.yaml` stores input values used by Helm templates during deployment.  
+
+A ConfigMap stores configuration data inside Kubernetes after deployment. it is consumed by applications running in Kubernetes.
+
+## Q. What Happens During helm upgrade?
+During a Helm upgrade:  
+1. Helm reads Chart.yaml and values.yaml
+2. Templates are rendered
+3. Kubernetes manifests are generated
+4. Resources are updated in the cluster
+5. A new release revision is created
+
+**One-Liner:**  
+A Helm upgrade generates updated manifests and applies them to Kubernetes while creating a new release revision.
+
+## Q. What is a Helm Repository?
+A Helm repository is a collection of packaged Helm charts. It stores versioned charts that can be installed into Kubernetes clusters.
+
+## Q. Basic Helm Chart Structure
+my-chart/
+├── Chart.yaml
+├── values.yaml
+├── charts/
+└── templates/
+
+Chart.yaml  → Metadata
+values.yaml → Configuration
+templates/  → Kubernetes manifests
+charts/     → Dependencies
+
+## Q. What Are Helm Chart Dependencies?
+Chart dependencies allow one chart to use another chart. Dependencies allow multiple applications or services to be deployed together using a single chart.  
+Example:
+Application Chart
+└── Redis Chart
+
+Defined in Chart.yaml:  
+dependencies:  
+- name: redis
+
+## Q. What Is a Helm Revision?
+Every install, upgrade, or rollback creates a release revision.  
+Check revisions: ` helm history my-app `
+
+Example:  
+Revision 1 → Initial install  
+Revision 2 → Upgrade  
+Revision 3 → Upgrade  
+
+**One-Liner:** A revision is a versioned deployment history maintained by Helm.  
+
+---
 ## 🔥 Q. How do you check what values are currently used by a Helm release?
 ` helm get values <release-name> `  
 To see all values including defaults: ` helm get values <release-name> --all `  
@@ -243,7 +306,7 @@ Then I validate the chart using helm lint. This helps identify YAML errors, temp
 Then I render the manifests using `helm template`, and verify Deployment and service definitions, ConfigMaps and secrets.  
 Next, I check Kubernetes events using `kubectl get events -n <namespace>` to look for scheduling failures, image pull errors, volume mount issues, or resource constraints.   
 After that, I inspect the pods using `kubectl describe pod <pod-name> - n namespace` and review application logs with `kubectl logs <pod-name>`. This helps identify runtime issues such as application startup failures, missing ConfigMaps or Secrets, and connectivity problems.  
-Finally, I validate the rendered manifests using helm template and verify that the cluster has sufficient CPU, memory, storage, and all required dependencies. Based on the findings, I fix the issue and redeploy the release.
+Finally, I verify that the cluster has sufficient CPU, memory, storage, and all required dependencies.
 
 ---
 ## 🔥 Q. Helm Upgrade Failed in Production. How Would You Troubleshoot?
@@ -496,4 +559,14 @@ helm upgrade <release> <chart> \
 - Rollback revision is unusable
 - Previous artifacts are unavailable
 - Quick service restoration is required
+---
+
+## 🔥 Q. How do you rollback a Helm release?
+Helm rollback restores a previous release revision when an upgrade causes issues.  
+Check history: ` helm history my-app `  
+Rollback: ` helm rollback my-app 2 `  
+
+Verify: ` helm status my-app `  
+
+---
 
