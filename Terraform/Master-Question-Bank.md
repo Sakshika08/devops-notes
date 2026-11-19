@@ -529,7 +529,6 @@ Each project would call the same module and provide environment-specific values 
 This reduces duplication, improves consistency, and makes maintenance easier because changes only need to be made in one place.
 
 ---
-
 ## 7. Dependency Management
 ### Q. What is an Implicit Dependency?
 An implicit dependency occurs when one resource references an attribute of another resource.
@@ -603,6 +602,21 @@ Locals are used to define reusable values within Terraform configurations. They 
 ### Q. for_each vs Dynamic Block
 for_each is used to create multiple resources from a map or set, while Dynamic Blocks are used to create multiple nested configuration blocks within a single resource. For example, I would use for_each to create multiple EC2 instances or S3 buckets, and Dynamic Blocks to generate multiple ingress rules inside a Security Group.
 
+## 🔥 Q. How Would You Create Multiple S3 Buckets in Terraform?
+If I need to create multiple similar resources, I use `for_each` instead of creating each bucket manually.
+I define a collection of bucket names and Terraform creates one S3 bucket for each entry.
+This approach improves maintainability and allows new buckets to be added simply by updating the collection instead of adding new resource blocks.
+
+## 🔥 Q. Explain for_each and each.value in Terraform.
+`for_each` allows Terraform to create multiple instances of the same resource based on a collection such as a map or set.
+During iteration, Terraform exposes `each.key` and `each.value` for the current item being processed.
+For example, if multiple S3 bucket names are defined in a collection, `each.value` represents the current bucket name being created.
+This allows a single resource block to provision multiple resources dynamically.
+
+## 🔥 Q. Why Do We Use toset() in Terraform?
+`for_each` requires either a map or a set. When I have a list of values that I want to iterate through, I often convert the list into a set using `toset()`. It also removes duplicate values automatically, which helps avoid creating duplicate resources.
+This is commonly used when creating multiple AWS resources such as S3 buckets, IAM users, or security group rules.
+
 ---
 ## Terraform drift
 Terraform drift happens when the actual infrastructure differs from the Terraform configuration due to manual changes outside Terraform. First, I run `terraform apply -refresh-only` to update the state with the real infrastructure. If the manual change is intended, I update the Terraform code to match it. If the change is unauthorized, I run `terraform apply` to bring the infrastructure back to the desired state defined in code.
@@ -616,22 +630,17 @@ Terraform manages dependencies in two ways. Implicit dependencies are automatica
 
 
 =====================================================================================================
-
-
 ## Q: How do you make a subnet public in AWS?
 A subnet becomes public when it has a route to an Internet Gateway through a route table.
 to create a public subnet you need to create a route table first for that subnet to have route table and destination for the route table has to be internet gateway.
 and then you need to assiciated this route table to the subent so it become a public subent.
 
-
 ## Q: Do we need to configure AWS credentials as environment variables when using IAM Roles?
 No. When using IAM Roles, Terraform can automatically obtain temporary credentials from AWS STS. 
 For example, on an EC2 instance with an attached IAM Role, an EKS pod using IRSA, or GitHub Actions using OIDC, there is no need to store or configure AWS Access Keys and Secret Keys as environment variables.
 
-
 ## Q. Difference between Root Module and Child Module?  
 Root module is the main Terraform configuration being executed. A child module is called from another module to reuse infrastructure code.
-
 
 ## Q. Why is vpc_cidr defined both in the root module and child module?
 Answer
@@ -695,122 +704,20 @@ Environment variables are not fully secure by themselves, but they are safer tha
 ## Terraform Taint / Untaint (Deprecated) AND -replace
 Earlier, Terraform provided taint and untaint commands to force resource recreation. A tainted resource would be destroyed and recreated during the next apply. However, since Terraform v0.15.2, terraform taint has been deprecated, and the recommended approach is to use terraform apply -replace=<resource>.
 
-
-
 ## 🔥 Q. Dynamic Infrastructure Creation and Auto-Destroy. How Would You Automate It?
-
-For temporary environments such as development, testing, or feature branches, I would automate infrastructure creation and destruction using Terraform integrated with a CI/CD pipeline.
-
-When a developer creates a branch or raises a pull request, the pipeline automatically executes `terraform apply` to provision the required infrastructure. Once testing is completed or the pull request is merged, the pipeline triggers `terraform destroy` to remove the resources.
-
-This approach helps reduce cloud costs, eliminates manual effort, and ensures environments remain consistent and reproducible.
-
-In AWS, I can also combine this with scheduled automation using EventBridge, Lambda, or Jenkins jobs for environment cleanup.
-
-**Strong Closing Line:**
-I typically automate infrastructure provisioning with `terraform apply` and cleanup with `terraform destroy` through CI/CD pipelines to reduce operational overhead and cloud costs.
-
----
+For temporary environments such as development, testing, or feature branches, I would automate infrastructure creation and destruction using Terraform integrated with a CI/CD pipeline.  
+When a developer creates a branch or raises a pull request, the pipeline automatically executes `terraform apply` to provision the required infrastructure. Once testing is completed or the pull request is merged, the pipeline triggers `terraform destroy` to remove the resources.  
+This approach helps reduce cloud costs, eliminates manual effort, and ensures environments remain consistent and reproducible.  
+In AWS, I can also combine this with scheduled automation using EventBridge, Lambda, or Jenkins jobs for environment cleanup.  
 
 ## 🔥 Q. How Do You Manage Secrets Using Terraform and AWS Secrets Manager?
-
-I avoid hardcoding sensitive information such as database passwords, API keys, and tokens directly in Terraform code.
-
-Instead, I store secrets in AWS Secrets Manager and allow applications to retrieve them securely at runtime.
-
+I store secrets in AWS Secrets Manager and allow applications to retrieve them securely at runtime.
 Terraform can create and manage the secret resource, while IAM roles control who can access the secret.
 
-This approach improves security, enables secret rotation, and prevents sensitive information from being stored in source code repositories.
-
-**Strong Closing Line:**
-Terraform provisions the secret infrastructure, while AWS Secrets Manager securely stores and manages the actual secret values.
-
----
-
-## 🔥 Q. What Is the Use Case of a Dynamic Block?
-
-A dynamic block is used when a resource contains a repeating nested configuration that needs to be generated automatically.
-
-Instead of manually writing the same block multiple times, Terraform can create those blocks dynamically using loops.
-
-A common example is creating multiple ingress rules within a security group or defining multiple EBS volumes for an EC2 instance.
-
-This improves scalability, reduces code duplication, and makes the configuration easier to manage.
-
-**Strong Closing Line:**
-Dynamic blocks help generate repeated nested configurations automatically, making Terraform code more reusable and maintainable.
-
----
-
-## 🔥 Q. How Would You Create Multiple S3 Buckets in Terraform?
-
-If I need to create multiple similar resources, I use `for_each` instead of creating each bucket manually.
-
-I define a collection of bucket names and Terraform creates one S3 bucket for each entry.
-
-This approach improves maintainability and allows new buckets to be added simply by updating the collection instead of adding new resource blocks.
-
-**Strong Closing Line:**
-I use `for_each` to create multiple S3 buckets from a single resource definition, making the code more scalable and easier to manage.
-
----
-
-## 🔥 Q. Explain for_each and each.value in Terraform.
-
-`for_each` allows Terraform to create multiple instances of the same resource based on a collection such as a map or set.
-
-During iteration, Terraform exposes `each.key` and `each.value` for the current item being processed.
-
-For example, if multiple S3 bucket names are defined in a collection, `each.value` represents the current bucket name being created.
-
-This allows a single resource block to provision multiple resources dynamically.
-
-**Strong Closing Line:**
-`for_each` enables resource iteration, while `each.value` provides access to the current item's value during resource creation.
-
----
-
-## 🔥 Q. Why Do We Use toset() in Terraform?
-
-`for_each` requires either a map or a set.
-
-When I have a list of values that I want to iterate through, I often convert the list into a set using `toset()`.
-
-It also removes duplicate values automatically, which helps avoid creating duplicate resources.
-
-This is commonly used when creating multiple AWS resources such as S3 buckets, IAM users, or security group rules.
-
-**Strong Closing Line:**
-`toset()` converts a list into a set so it can be used with `for_each` while ensuring duplicate values are removed.
-
----
-
-## 🔥 Q. A Linux Server Has a 500 GB Volume. The Application Team Wants 750 GB. How Would You Perform the Change?
-
+## 🔥 Q. A Linux Server Has a 500 GB Volume. The Application Team Wants 750 GB. How Would You Perform the Change? OR How Would You Increase an Existing EBS Volume by 50 GB Without Downtime?
 If the server is running in AWS, I can increase the size of the attached EBS volume without downtime.
-
 First, I would modify the EBS volume from 500 GB to 750 GB in AWS. AWS allows online volume expansion for modern EBS volumes, so the instance can continue running during the change.
-
 After the volume modification is completed, I would connect to the server and verify that the operating system recognizes the additional storage.
-
 Finally, I would extend the partition and filesystem so the operating system can utilize the new capacity.
-
 After expansion, I would verify the updated disk size and ensure the application continues operating normally.
 
-**Strong Closing Line:**
-EBS volumes can be expanded online without stopping the EC2 instance, but the operating system filesystem must also be extended to use the additional space.
-
----
-
-## 🔥 Q. How Would You Increase an Existing EBS Volume by 50 GB Without Downtime?
-
-AWS supports online EBS volume expansion, so downtime is generally not required.
-
-I would first modify the volume size through AWS by increasing it by 50 GB. Once the modification completes, I would verify that the operating system detects the new capacity.
-
-Then I would extend the partition and filesystem using the appropriate Linux commands depending on whether the filesystem is XFS or EXT4.
-
-Finally, I would validate the new capacity and verify that the application continues functioning normally.
-
-**Strong Closing Line:**
-The process involves expanding the EBS volume in AWS and then extending the filesystem at the operating system level without stopping the server.
