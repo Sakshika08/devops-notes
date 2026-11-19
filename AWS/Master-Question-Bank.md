@@ -28,7 +28,6 @@ For users and applications within the same AWS account, I generally prefer IAM r
 If cross-account access is required, I would use a bucket policy to explicitly allow access from the external AWS account.  
 Finally, I validate access using AWS CLI commands or application testing to ensure the required permissions are working correctly.
 
-
 ## You have an application running on multiple EC2 instances behind an ALB. One day users report that the application is slow. How would you troubleshoot this issue?
  Answers:  First, I would identify whether the issue is occurring at the load balancer, EC2, application, or database layer. I would check ALB health checks, Target Response Time, Request Count, and 4XX/5XX errors. Next, I would review EC2 metrics such as CPU utilization, memory usage, disk usage, and network traffic in CloudWatch. If infrastructure looks healthy, I would check application logs in CloudWatch Logs and web server logs. If the application depends on a database, I would review database metrics such as CPU, connections, latency, and slow queries. Tools I would use include CloudWatch, CloudWatch Logs, ALB access logs, EC2 system logs, RDS monitoring, and AWS X-Ray for request tracing.
 
@@ -52,4 +51,59 @@ If the application is running on Kubernetes, I would also check pod resource uti
 Additionally, I would review load balancer metrics, network latency, and infrastructure health to identify any bottlenecks outside the application itself.  
 Once the root cause is identified, I would take the appropriate corrective action such as scaling resources, optimizing database queries, increasing application replicas, fine-tuning caching, or resolving infrastructure issues.
 
----
+## 🔥 Q. Explain EC2, NAT Gateway, and NACL Together in an AWS Architecture.
+EC2 provides compute, NAT Gateway enables secure outbound internet access for private resources, and NACLs provide subnet-level traffic filtering.
+
+## 🔥 Q. What Are the Different Amazon EBS Volume Types?
+Amazon EBS provides different storage types based on performance and workload requirements.
+The most commonly used volumes are GP3 and GP2, which are SSD-based General Purpose volumes suitable for most applications.
+For high-performance workloads requiring very low latency and high IOPS, Provisioned IOPS volumes such as IO1 and IO2 are used.
+For large sequential workloads such as log processing, data warehousing, and big data analytics, Throughput Optimized HDD (ST1) can be used.
+For infrequently accessed workloads where cost is more important than performance, Cold HDD (SC1) is available.  
+- GP3 → General-purpose SSD (most commonly used)
+- GP2 → Older general-purpose SSD
+- IO1 / IO2 → High-performance SSD with provisioned IOPS
+- ST1 → Throughput-optimized HDD
+- SC1 → Cold HDD for infrequently accessed data
+For most production workloads today, GP3 is preferred because it provides better performance and lower cost compared to GP2.
+
+## 🔥 Q. What Are the Components and Routing Policies in Route 53?
+Amazon Route 53 is AWS's DNS service used to route users to applications and AWS resources.  
+The main components include hosted zones, DNS records, health checks, and routing policies.  
+A Hosted Zone stores DNS records for a domain, while records such as A, CNAME, Alias, and MX define how traffic is routed.  
+Route 53 supports multiple routing policies depending on the use case.
+
+**Common Routing Policies:**  
+- Simple Routing → Single resource
+- Weighted Routing → Distribute traffic by percentage
+- Latency-Based Routing → Route users to the nearest region
+- Failover Routing → Disaster recovery and high availability
+- Geolocation Routing → Route based on user location
+- Geoproximity Routing → Route based on geographic proximity
+- Multi-Value Answer Routing → Return multiple healthy endpoints
+For example, in a multi-region application, I would use Latency-Based Routing to ensure users are routed to the nearest AWS region for better performance.
+
+## 🔥 Q. How Do You Reduce Cloud Costs Without Affecting Availability?
+I start by identifying underutilized resources and then optimize them without compromising reliability or performance.  
+Some common approaches I have used include rightsizing EC2 instances, removing unused EBS volumes and snapshots, scheduling non-production resources to shut down outside business hours, and using Auto Scaling so resources match actual demand.  
+For steady-state workloads, I would use Savings Plans or Reserved Instances to reduce compute costs. For fault-tolerant workloads, I would leverage Spot Instances where appropriate.  
+I also use tools such as AWS Cost Explorer, Trusted Advisor, and AWS Compute Optimizer to identify optimization opportunities.  
+Throughout the process, I monitor application performance to ensure availability and user experience are not impacted.
+
+## 🔥 Q. What is UAT?
+UAT stands for User Acceptance Testing.  
+It is the phase where business users, clients, or stakeholders validate that the application meets business requirements before it is released to production.  
+After development and system testing are completed, the application is deployed to a UAT environment that closely resembles production. End users then execute business scenarios and validate functionality.  
+Only after successful UAT sign-off is the application promoted to production.  
+
+**Typical Environment Flow:**
+
+```text
+Development
+      ↓
+QA / Testing
+      ↓
+UAT
+      ↓
+Production
+```
