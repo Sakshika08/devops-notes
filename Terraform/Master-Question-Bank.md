@@ -30,9 +30,6 @@ This prevents:
 - Race conditions
 - Inconsistent infrastructure
 
-## Q. What happens if the DynamoDB lock is not released?
-Terraform will prevent further operations because the state remains locked. After verifying no Terraform operation is running, I can manually remove the stale lock from DynamoDB or use the force-unlock command.
-` terraform force-unlock LOCK_ID `
 
 ## Q. Someone manually modified an AWS resource. How would you detect and fix it?
 This is called Terraform Drift.  
@@ -41,12 +38,6 @@ Terraform compares the actual infrastructure with the state and configuration an
 If the manual change is intended i would run ` terraform apply -refresh-only ` and update the Terraform code accordingly.  
 If the change is unauthorized i would directly run `terraform apply` right after terraform plan command to bring the infrastructure back to the desired state defined in code.
 
-## Q. How can drift be prevented in Terraform?
-Infrastructure changes should be made only through Terraform. Manual changes in the cloud console should be avoided, and infrastructure should be managed through code reviews and CI/CD pipelines.
-
-## Q. How do you detect drift without making changes?
-I run: terraform plan  
-Terraform compares the state and configuration against the actual infrastructure and reports any drift.
 
 ## Q. A resource was created manually in AWS. How would you bring it under Terraform management?
 I would use Terraform Import.
@@ -117,7 +108,7 @@ Terraform retrieves secrets at runtime instead of hardcoding them in `variables.
 
 I would also:
 - Use IAM Roles and temporary credentials
-- Mark variables and outputs as sensitive = true
+- Mark variables and outputs as sensitive = true, It  hides values from output but Secrets can still exist in the state file.
 - Store state in an encrypted remote backend
 - Restrict access to the Terraform state
 This ensures secrets are protected both during execution and at rest.
@@ -125,11 +116,6 @@ This ensures secrets are protected both during execution and at rest.
 ## Q. Why is storing passwords in terraform.tfvars considered a bad practice?
 Files such as terraform.tfvars can be accidentally committed to Git repositories. Production secrets should be stored in AWS Secrets Manager, HashiCorp Vault, or another dedicated secret management solution.
 
-## Q. Does sensitive=true encrypt secrets?
-No. It only hides values from output. Secrets can still exist in the state file.
-
-## Q. Where can secrets still be exposed even when sensitive = true is used?
-sensitive=true only hides values from Terraform output. Secrets may still exist in the Terraform state file, so the state backend must also be secured.
 
 ## Q. How would you force recreation of a resource?
 In modern Terraform, I use: ` terraform apply -replace="aws_instance.web" `  
@@ -142,9 +128,8 @@ Use cases:
 
 
 ## Q. Follow up question: What command was used before -replace?
-Earlier Terraform used: terraform taint aws_instance.web  
-followed by: terraform apply  
-However, terraform taint is deprecated, and -replace is now the recommended approach.
+terraform taint (deprecated)  
+terraform apply -replace  
 
 ## Q. When would you use create_before_destroy?
 I use create_before_destroy when replacing resources that should remain available during updates, such as EC2 instances behind a load balancer, to minimize downtime.
@@ -414,7 +399,6 @@ I have commonly used lookup for retrieving map values, length for collection siz
 ### Q. What is state locking?​‌
 State locking prevents multiple users from modifying the same Terraform state simultaneously. In AWS, DynamoDB is commonly used for state locking.
 
-### Q. What happens if state locking is not used?
 Multiple users could run Terraform simultaneously, leading to race conditions, resource conflicts, and state corruption
 
 ---
@@ -619,7 +603,10 @@ This is commonly used when creating multiple AWS resources such as S3 buckets, I
 
 ---
 ## Terraform drift
-Terraform drift happens when the actual infrastructure differs from the Terraform configuration due to manual changes outside Terraform. First, I run `terraform apply -refresh-only` to update the state with the real infrastructure. If the manual change is intended, I update the Terraform code to match it. If the change is unauthorized, I run `terraform apply` to bring the infrastructure back to the desired state defined in code.
+Terraform drift happens when the actual infrastructure differs from the Terraform configuration due to manual changes outside Terraform. First, I run `terraform apply -refresh-only` to update the state with the real infrastructure. If the manual change is intended, I update the Terraform code to match it. If the change is unauthorized, I run `terraform apply` to bring the infrastructure back to the desired state defined in code.  
+
+To detect drift run: terraform plan
+Terraform compares the state and configuration against the actual infrastructure and reports any drift.
 
 ## Q. A developer manually changes an EC2 instance in AWS Console. What happens?
 Terraform detects drift during plan/refresh.
@@ -700,9 +687,6 @@ module "ec2" {
 ## Q. Why use environment variables for secrets if they can still be viewed?  
 Environment variables are not fully secure by themselves, but they are safer than hardcoding secrets in Terraform code or tfvars files. In production, secrets are typically injected from Jenkins Credentials, GitHub Secrets, AWS Secrets Manager, or Vault as temporary environment variables, and Terraform variables are marked as sensitive to avoid displaying them in outputs and logs.
 
-
-## Terraform Taint / Untaint (Deprecated) AND -replace
-Earlier, Terraform provided taint and untaint commands to force resource recreation. A tainted resource would be destroyed and recreated during the next apply. However, since Terraform v0.15.2, terraform taint has been deprecated, and the recommended approach is to use terraform apply -replace=<resource>.
 
 ## 🔥 Q. Dynamic Infrastructure Creation and Auto-Destroy. How Would You Automate It?
 For temporary environments such as development, testing, or feature branches, I would automate infrastructure creation and destruction using Terraform integrated with a CI/CD pipeline.  
