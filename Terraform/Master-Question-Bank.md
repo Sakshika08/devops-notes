@@ -4,35 +4,20 @@ One Terraform issue I handled was a state lock problem. A Terraform deployment p
 `terraform force-unlock <LOCK_ID>`
 
 ## Q. Your Terraform apply failed midway. Some resources were created and some were not. What do you do?
-First, I would review the error message and identify the resource that caused the failure.
-
-Since Terraform maintains the current state, resources that were successfully created before the failure are typically already recorded in the state file.
-
-Steps I would follow:
+First, I would review the error message and identify the resource that caused the failure.  
+Since Terraform maintains the current state, resources that were successfully created before the failure are typically already recorded in the state file.  
+Steps I would follow:  
 - Check the error details.
-- Fix the configuration or permission issue.  
-Run: ` terraform plan ` --> to verify the pending changes.
-
-Run: ` terraform apply ` --> again.  
+- Fix the configuration or permission issue.   
+Run: ` terraform plan ` --> to verify the pending changes.  
+Run: ` terraform apply ` --> again.    
 Terraform compares the state file with the desired configuration and creates only the missing resources.
 
 ## Q. Two engineers run terraform apply simultaneously. How do you prevent issues?
-I use remote state with state locking.  
-In AWS:  
-S3 stores the Terraform state file  
-DynamoDB provides state locking.  
-
-When one engineer runs: terraform apply  
-Terraform acquires a lock in DynamoDB.  
-If another engineer tries to run Terraform at the same time, Terraform blocks the operation until the lock is released.
-This prevents:
-- State corruption
-- Race conditions
-- Inconsistent infrastructure
-
+I prevent that by using remote state with locking. We store the Terraform state in S3 and use DynamoDB for state locking. When one engineer runs terraform apply, Terraform acquires a lock, so if another engineer tries to apply changes at the same time, the operation is blocked until the lock is released. This prevents state corruption and conflicting infrastructure changes.
 
 ## Q. Someone manually modified an AWS resource. How would you detect and fix it?
-This is called Terraform Drift.  
+This is called Terraform Drift, it happen when the actual infrastructure differs from the Terraform configuration due to manual changes outside Terraform 
 I would first run: terraform plan  
 Terraform compares the actual infrastructure with the state and configuration and reports any differences.   
 If the manual change is intended i would run ` terraform apply -refresh-only ` and update the Terraform code accordingly.  
@@ -140,14 +125,7 @@ I avoid it when duplicate resources cannot exist simultaneously due to naming re
 ## Suppose a developer manually deletes an EC2 instance from the AWS Console, but that instance is still present in the Terraform state and code. What will happen when you run: terraform plan and the terraform apply. How would Terraform know that the resource was deleted outside of Terraform?
 This is a Terraform drift scenario. The EC2 instance was deleted manually from AWS, but Terraform code still defines the resource. During terraform plan, Terraform refreshes the state and compares it with the actual infrastructure. It detects that the instance is missing and shows it needs to be recreated. Running terraform apply will recreate the EC2 instance to match the desired state defined in the Terraform code. In modern Terraform, a separate terraform refresh is generally not required because state refresh happens automatically during plan and apply operations.
 
-## You are using Terraform with: Remote state stored in S3 and State locking using DynamoDB
-One day, an engineer starts terraform apply, but their laptop crashes midway.
-Now another engineer tries to run terraform apply and gets a state lock error.
-Question:
-Why did this happen?
-How would you verify that the lock is genuine and another deployment is not actually running?  
-How would you safely resolve the issue?  
-Which Terraform command would you use?  
+## An engineer starts terraform apply, but their laptop crashes midway. Now another engineer tries to run terraform apply and gets a state lock error.
 **Answer**  
 Terraform acquires a lock in DynamoDB before modifying the state file. If an engineer's laptop crashes during terraform apply, Terraform may not get a chance to release the lock. As a result, subsequent Terraform operations fail with a state lock error.
 First, I would verify that another deployment is not actively running by checking with the team and reviewing the lock information in DynamoDB. I would also verify that no CI/CD pipeline or automation job is currently executing Terraform.
@@ -163,9 +141,6 @@ Terraform is an Infrastructure as Code (IaC) tool developed by HashiCorp that is
 
 ### 2. Q. What is Infrastructure as Code (IaC)?
 Infrastructure as Code (IaC) is the practice of managing and provisioning infrastructure through code instead of manual processes. Infrastructure configurations are stored in version-controlled files, making deployments repeatable, consistent, and automated.
-
-### 3. Q. What is a Provider?
-A provider is a plugin that enables Terraform to interact with cloud providers and external services through their APIs. Providers act as a bridge between Terraform and platforms such as AWS, Azure, GCP, Docker, or Kubernetes.
 
 ### 4. Q. Is Provider Different from Resource?
 Yes.  
@@ -285,24 +260,13 @@ EC2 Instance
 ```
 ### Q. What is the most secure way to authenticate Terraform with AWS?
 The most secure method is using IAM Roles with temporary credentials. Terraform can assume an IAM Role and obtain temporary credentials from AWS STS. This eliminates the need to store long-lived access keys and secret keys.
-
-
-
 Benefits:  
 - No hardcoded credentials
 - Automatic credential rotation
 - Better security
 - Recommended by AWS
+- no need to use env variable (AWS_ACCESS_KEY_ID or AWS_SECRET_ACCESS_KEY)
 
-## Q. Do we need environment variables when using IAM Roles?
-No. When Terraform is running on an AWS resource that already has an IAM Role attached, such as an EC2 instance, EKS worker node, ECS task, or AWS CloudShell, Terraform automatically obtains temporary credentials from the IAM Role.
-
-Example: IAM Role → STS Temporary Credentials → Terraform
-No Need for:  
-AWS_ACCESS_KEY_ID  
-AWS_SECRET_ACCESS_KEY
-
-However, environment variables may still be used when Terraform is running outside AWS, such as on a developer laptop, Jenkins server, or GitHub Actions runner.
 
 ### Q. Why should we avoid hardcoded AWS credentials?
 Hardcoded credentials create security risks because they can be exposed in source code repositories, shared files, or logs. Using IAM Roles or secret management solutions is a more secure and scalable approach.
@@ -351,17 +315,6 @@ Terraform Variable: ` variable "region" {}  `
 Terraform automatically assigns the value to the variable.  
 Environment variables are commonly used in Jenkins, GitHub Actions, Azure DevOps, and other CI/CD tools.
 
-### Q. Why use environment variables for secrets?
-Environment variables are safer than hardcoding secrets in Terraform code or .tfvars files because secrets are supplied externally at runtime.  
-
-In production environments, secrets are typically injected from:
-- AWS Secrets Manager
-- HashiCorp Vault
-- GitHub Secrets
-- Jenkins Credentials
-- Azure Key Vault
-
-Environment variables help keep sensitive values out of source code and version control.
 
 ### Q. What are Locals?
 Locals are reusable values defined within Terraform configurations. They help reduce repetition, improve readability, and centralize commonly used values such as tags, naming conventions, and environment-specific settings.
@@ -394,12 +347,6 @@ Variables are used to pass values into a module, whereas outputs are used to ret
 
 ### Q. What Terraform functions have you used?
 I have commonly used lookup for retrieving map values, length for collection size, merge for combining tag maps, and join/split for string manipulation.
-
-
-### Q. What is state locking?​‌
-State locking prevents multiple users from modifying the same Terraform state simultaneously. In AWS, DynamoDB is commonly used for state locking.
-
-Multiple users could run Terraform simultaneously, leading to race conditions, resource conflicts, and state corruption
 
 ---
 
@@ -602,16 +549,6 @@ This allows a single resource block to provision multiple resources dynamically.
 This is commonly used when creating multiple AWS resources such as S3 buckets, IAM users, or security group rules.
 
 ---
-## Terraform drift
-Terraform drift happens when the actual infrastructure differs from the Terraform configuration due to manual changes outside Terraform. First, I run `terraform apply -refresh-only` to update the state with the real infrastructure. If the manual change is intended, I update the Terraform code to match it. If the change is unauthorized, I run `terraform apply` to bring the infrastructure back to the desired state defined in code.  
-
-To detect drift run: terraform plan
-Terraform compares the state and configuration against the actual infrastructure and reports any drift.
-
-## Q. A developer manually changes an EC2 instance in AWS Console. What happens?
-Terraform detects drift during plan/refresh.
-
----
 ## Terraform Dependency Management  
 Terraform manages dependencies in two ways. Implicit dependencies are automatically detected when one resource references another resource's attribute, such as a subnet using a VPC ID. Explicit dependencies are defined using depends_on when Terraform cannot determine the relationship automatically. As a best practice, I use implicit dependencies whenever possible and use depends_on only when required.
 
@@ -626,8 +563,6 @@ and then you need to assiciated this route table to the subent so it become a pu
 No. When using IAM Roles, Terraform can automatically obtain temporary credentials from AWS STS. 
 For example, on an EC2 instance with an attached IAM Role, an EKS pod using IRSA, or GitHub Actions using OIDC, there is no need to store or configure AWS Access Keys and Secret Keys as environment variables.
 
-## Q. Difference between Root Module and Child Module?  
-Root module is the main Terraform configuration being executed. A child module is called from another module to reuse infrastructure code.
 
 ## Q. Why is vpc_cidr defined both in the root module and child module?
 Answer
@@ -642,47 +577,8 @@ module "vpc" {
 The child module must declare: ```variable "vpc_cidr" {}``` to receive that value.
 
 ## Q. Can a child module directly access variables from the root module?
-Answer
 No. A child module can only access values explicitly passed by the parent module.
-❌ Not allowed
-```
-# child module
-cidr_block = var.root_vpc_cidr
-```
-Correct:
-```
-module "vpc" {
-  source   = "./modules/vpc"
-  vpc_cidr = var.vpc_cidr
-}
-```
 
-
-### Q: What happens if you forget to declare a variable in the child module?
-Terraform throws an error because the variable is not defined in that module.
-**Example:**
-```hcl
-resource "aws_vpc" "this" {
-  cidr_block = var.vpc_cidr
-}
-```
-but: `variable "vpc_cidr" {}` is missing.
-Terraform fails during validation or plan.
-
-
-### Q. How is module communication achieved?
-Answer
-Modules cannot directly communicate with each other.
-Communication happens through:
-Output from Module A
-Variable in Module B
-Example: `module.vpc.subnet_id`
-and passed into:
-```
-module "ec2" {
-  subnet_id = module.vpc.subnet_id
-}
-```
 
 ## Q. Why use environment variables for secrets if they can still be viewed?  
 Environment variables are not fully secure by themselves, but they are safer than hardcoding secrets in Terraform code or tfvars files. In production, secrets are typically injected from Jenkins Credentials, GitHub Secrets, AWS Secrets Manager, or Vault as temporary environment variables, and Terraform variables are marked as sensitive to avoid displaying them in outputs and logs.
