@@ -46,8 +46,8 @@ terraform apply
 terraform destroy
 ```
 
-Initialize your Terraform workspace with the ```terraform init``` command. Terraform downloads and installs the providers defined in your configuration in your current working directory. Install the plugins Terraform needs to manage the infrastructure.  
-Terraform downloaded the provider and installed it in a hidden ```.terraform``` subdirectory of your current working directory. Terraform also created a file named ```.terraform.lock.hcl``` which specifies the exact provider versions used with your workspace, ensuring consistency between runs.
+Initialize your Terraform workspace with the ```terraform init``` command. Terraform downloads and installs the s defined in your configuration in your current working directory. Install the plugins Terraform needs to manage the infrastructure.  
+Terraform downloaded the  and installed it in a hidden ```.terraform``` subdirectory of your current working directory. Terraform also created a file named ```.terraform.lock.hcl``` which specifies the exact  versions used with your workspace, ensuring consistency between runs.
 
 ### 3. Provider Plugins
 A Provider is a plugin that enables Terraform to interact with a specific platform by calling its APIs.
@@ -56,7 +56,6 @@ A provider acts as a bridge between Terraform and the target platform. Terraform
 Examples:  
 AWS → hashicorp/aws  
 Azure → hashicorp/azurerm  
-GCP → hashicorp/google  
 Kubernetes → hashicorp/kubernetes  
 
 ```
@@ -777,16 +776,13 @@ output "my_map" {
 These are just a few examples of the built-in functions available in Terraform. You can find more functions and detailed documentation in the official Terraform documentation, which is regularly updated to include new features and improvements
 
 # Provisioners
-A Provisioner is used to execute scripts or commands after a resource is created (or before it's destroyed).   
-Think of it as: Resource Creation → Provisioner Runs → Additional Configuration
-
+Provisioners are used to execute commands after resource creation. (or before it's destroyed).   
 For example:
 Create an EC2 instance  
 SSH into the instance  
 Install Apache/Nginx  
 Copy files  
-
-All of this can be done using a provisioner.
+Note: HashiCorp generally recommends configuration management tools such as Ansible or cloud-init over provisioners.
 
 ## Types of Provisioners
 ### 1. file Provisioner 
