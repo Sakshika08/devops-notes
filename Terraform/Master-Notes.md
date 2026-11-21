@@ -81,17 +81,6 @@ terraform apply →  Create Resources
     |
 Update State File
 ```
-
----
-## Terraform Graph
-Terraform creates a dependency graph of resources before execution and uses it to determine creation and deletion order.
-```
-VPC
- |
-Subnet
- |
-EC2
-```
 ---
 
 ## The ```terraform``` block
@@ -782,10 +771,7 @@ NOT on EC2.
 ---
 # Terraform Import
 Terraform Import allows Terraform to start managing an existing resource without recreating it.
-When to use?  
-- Existing EC2 instance
-- Existing S3 bucket
-- Existing IAM Role
+Use When: Existing EC2, S3 bucket and/or IAM Role
   
 ## Terraform Import (Bring Existing Resources Under Terraform Management)
 ### Step 1: Create Import Block
@@ -797,18 +783,9 @@ import {
 }
 ```
 
-Example:
-```hcl
-import {
-  id = "i-0123456789abcdef0"
-  to = aws_instance.example
-}
-```
-
 ### Step 2: Generate Terraform Configuration
 ` terraform plan --generate-config-out=generated_resource.tf `  
 → Terraform generates configuration code for the imported resource.
-
 
 ### Step 3: Review Generated Configuration
 Terraform creates: ` generated_resource.tf `  
@@ -834,48 +811,46 @@ No changes. Your infrastructure matches the configuration.
 This confirms the resource is successfully imported and Terraform state is synchronized.
 
 ---
+# Terraform Drift
+Terraform drift occurs when actual infrastructure differs from the Terraform configuration due to changes made outside Terraform.  
+Example:  
+```text
+Terraform Code (.tf) : t2.micro
+Terraform State      : t2.micro
+Actual AWS Resource  : t3.micro
+```
 
-# Drift
-` Terraform Code ≠ Actual Infrastructure `
-Terraform drift occurs when infrastructure is modified outside Terraform.
-Example:
-* Terraform created an EC2 instance.
-* An engineer manually changes its instance type from the AWS Console.
-* Terraform state and actual infrastructure are now different.
- 
-### Drift Detection: 
+### Drift Detection
 #### Option 1 (Recommended): Audit & Alerting
-Best practice in production environments.  
-Example AWS approach:
-* CloudTrail records infrastructure changes.
-* EventBridge detects changes.
-* Lambda function validates the change.
-* Alert if the modification was performed by a non-Terraform IAM role.
+- CloudTrail records infrastructure changes
+- EventBridge detects changes
+- Lambda validates the change
+- Alert if the change was made by a non-Terraform IAM role
 
 Benefits:
-* Near real-time drift detection.
-* No need for scheduled Terraform runs.
-* Better security and governance.
+- Near real-time detection
+- Better governance
+- No scheduled Terraform jobs required
 
 #### Option 2: Scheduled Drift Checks
-Run drift detection periodically using a Cron Job, Jenkins Job, GitHub Actions workflow, etc.   
-The `-refresh-only` flag instructs Terraform to inspect the real-world infrastructure, detect the manual changes, and update the state file to reflect reality, without actually modifying your live resources.
+Run periodically using: Jenkins, GitHub Actions or Cron Jobs
 
-**Preview Drift:** ` terraform plan -refresh-only `
-Detects differences between:
-* Terraform State
-* Actual Cloud Infrastructure
+Detect drift: ` terraform plan `  
+Updates state only: ` terraform apply -refresh-only `
 
-No state changes are made.
+### Resolving Drift
+#### Keep the Manual Change
+`terraform apply -refresh-only` 
+→ Update the Terraform state to match the actual infrastructure. Then manually update the Terraform code to match the infrastructure.
 
-**Update State:** ` terraform apply -refresh-only `
-Updates Terraform state to match actual infrastructure.  
-No infrastructure changes are performed.
-
----
+#### Revert the Manual Change
+```bash
+terraform plan
+terraform apply
+```
+→ Terraform updates the infrastructure to match the code.
 
 ## What Refresh Does
-
 **Queries Cloud APIs:** Checks actual resource configuration from cloud providers  
 **Detects Drift:** Identifies changes made outside Terraform.  
 **Updates State Only:**  Refresh updates `terraform.tfstate ` only. It does **not** modify cloud resources.    
@@ -883,117 +858,15 @@ No infrastructure changes are performed.
 
 ---
 
-## Terraform Drift Resolution Notes
-
-Drift occurs when the actual infrastructure is changed outside Terraform.  
-Example:
+### Key Point
 ```text
-Terraform Code (.tf) : t2.micro
-Terraform State      : t2.micro
-Actual AWS Resource  : t3.micro
-```
-Someone manually modified the EC2 instance in the AWS Console.
-
-### Step 1: Refresh the State
-` terraform apply -refresh-only ` → Terraform reads the real infrastructure and updates the state file.
-
-Result:
-```text
-Code   : t2.micro
-State  : t3.micro
-Actual : t3.micro
-```
-State now reflects reality.
-
-
-### Option 1: Keep the Manual Changes 
-
-If the manual change is valid and should remain (Align Code with Reality):
-
-**Run:** ` terraform apply -refresh-only `
-
-**Update Terraform code:** ` instance_type = "t3.micro" `
-
-**Verify:** ` terraform plan `  
-Output:
-```text
-No changes.
-Infrastructure matches configuration.
-```
-
-**Final:**  
-```text
-Code   = t3.micro
-State  = t3.micro
-Actual = t3.micro
-```
-
-✅ Drift resolved by updating Terraform code.
-
----
-
-### Option 2: Revert the Manual Changes
-
-If the manual change was accidental (Align Reality with Code):
-
-**Run:** ` terraform apply -refresh-only `
-
-**Keep Terraform code unchanged:**  
-```hcl
-instance_type = "t2.micro"
-```
-
-**Run:** ` terraform plan `
-
-**Terraform detects:**  t3.micro -> t2.micro
-
-**Run:** ` terraform apply `  
-Terraform changes the resource back to the value defined in code.
-
-**Final:**
-```text
-Code   = t2.micro
-State  = t2.micro
-Actual = t2.micro
-```
-
-✅ Drift resolved by enforcing Terraform code.
-
----
-
-### Summary Flow
-```text
-Drift Detected
-       |
-       v
-terraform apply -refresh-only
-       |
-       v
-State Updated to Match Reality
-       |
-       +-------------------+
-       |                   |
-       v                   v
-Keep Change?         Remove Change?
-       |                   |
-Update .tf Code      terraform apply
-       |                   |
-       v                   v
-Code = State = Actual Infrastructure
-```
-
----
-
-### One-Line Memory Trick
-
-```text
-Drift = Code ≠ Reality
+Drift = Terraform Code ≠ Actual Infrastructure
 
 Detect  → terraform plan -refresh-only
 Refresh → terraform apply -refresh-only
 
-Keep change?   → Update Code
-Remove change? → Apply Code
+Keep Change?   → Update Code
+Remove Change? → terraform apply
 ```
 ---
 
@@ -1003,25 +876,20 @@ Remove change? → Apply Code
 * Bring an existing resource under Terraform management.
 * Resource is not currently present in Terraform state.
 
-Example:
-* A coworker manually created an S3 bucket.
-* Terraform must start managing it.
+Example: A coworker manually created an S3 bucket. Terraform must start managing it.
 
 ### terraform plan -refresh-only
 * Detect drift in resources already managed by Terraform.
 
-Example:
-* An EC2 instance exists in Terraform state.
-* Someone manually changes its configuration in AWS.
+Example: An EC2 instance exists in Terraform state but Someone manually changes its configuration in AWS.
 
 ---
 
 # Terraform Lifecycle Meta-Argument
-
 lifecycle is used inside a Terraform resource block to control how Terraform creates, updates, or destroys resources.
 
 ### 1. create_before_destroy
-Creates the new resource first, then deletes the old one.
+Creates the new resource first, then deletes the old one. Prevents downtime during replacement.
 ```
 resource "aws_instance" "web" {
   ami           = "ami-123456"
@@ -1032,13 +900,11 @@ resource "aws_instance" "web" {
   }
 }
 ```
-Prevents downtime during replacement.
 
 ### 2. prevent_destroy
-**How do you protect a production database from accidental deletion?  
-Q: A production RDS database must never be deleted accidentally. What would you use?**  
+**How do you protect a production database from accidental deletion?**  
 
-Prevents accidental deletion of critical resources.  
+`prevent_destroy` Prevents accidental deletion of critical resources.  
 ```
 resource "aws_db_instance" "prod_db" {
 
@@ -1053,7 +919,7 @@ Useful for Production DBs, S3 buckets, EKS clusters.
 ### 3. ignore_changes
 **Q: Terraform keeps trying to revert tags modified by another team. How do you stop it?**
 
-Tells Terraform to ignore changes to specific attributes.  
+`ignore_changes` Tells Terraform to ignore changes to specific attributes.  
 ```
 resource "aws_instance" "web" {
   ami = "ami-123456"
@@ -1072,8 +938,6 @@ terraform plan will not show changes.
 ✅ Useful when another team/tool manages certain attributes.  
 
 ### 4. replace_triggered_by
-
-Forces resource recreation when another resource changes.  
 replace_triggered_by forces a resource replacement when the referenced resource or value changes.
 ```
 resource "aws_instance" "web" {
@@ -1085,14 +949,11 @@ resource "aws_instance" "web" {
   }
 }
 ```
-If the Launch Template changes, the EC2 instance is recreated automatically.
-
+If the Launch Template changes, the EC2 instance is recreated automatically.  
 ✅ Useful for immutable infrastructure.
 
 ---
-
-# Terraform Dependency
-What is Dependency Management?  
+# Terraform Dependency (OR Terraform Graph)
 Terraform automatically determines the order in which resources should be created, modified, or destroyed based on their relationships.
 
 ## 1. Implicit Dependency (Most Common)
@@ -1110,7 +971,6 @@ resource "aws_subnet" "public" {
 Here ` vpc_id = aws_vpc.main.id ` creates the dependency automatically. so Terraform knows the VPC must be created before the subnet.
 
 ## 2. Explicit Dependency
-
 Explicit dependencies are defined using `depends_on` when Terraform cannot automatically determine the relationship between resources.  
 Example:
 ```
@@ -1148,7 +1008,6 @@ module "ec2" {
 ```
 
 #### When Do We Use depends_on?
-
 Use it only when Terraform cannot infer the dependency.  
 Examples:  
 ✅ IAM Role before EKS Cluster  
