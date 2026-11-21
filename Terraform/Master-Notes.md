@@ -1,4 +1,4 @@
-<img width="3970" height="2268" alt="image" src="https://github.com/user-attachments/assets/48ec68d7-1b3f-4096-8726-36a70566b379" /><img width="4032" height="480" alt="image" src="https://github.com/user-attachments/assets/b0b8bc53-e7b9-40ff-80d4-19bac03c884c" /><img width="4032" height="835" alt="image" src="https://github.com/user-attachments/assets/b498b2c9-defc-47c7-9cfa-0447ad81ee9f" /># Terraform
+# Terraform
 
 ## Why Infrastructure as Code (IaC)?
 Before the advent of IaC:
@@ -549,7 +549,8 @@ resource "aws_instance" "example" {
 }
 ```
 In this example, the count attribute of the aws_instance resource uses a conditional expression. If the create_instance variable is true, it creates one EC2 instance. If create_instance is false, it creates zero instances, effectively skipping resource creation.
-```instance_type = var.environment == "prod" ? "t3.large" : "t3.micro"
+```
+instance_type = var.environment == "prod" ? "t3.large" : "t3.micro"
 Prod → t3.large, Dev  → t3.micro
 ```
 
@@ -725,7 +726,8 @@ Copy configuration files
 ### 2. remote-exec Provisioner  
 The remote-exec provisioner is used to run scripts or commands on a remote machine over SSH or WinRM connections. It's often used to configure or install software on provisioned instances.  
 Example:
-```resource "aws_instance" "example" {
+```
+resource "aws_instance" "example" {
   ami           = "ami-0c55b159cbfafe1f0"
   instance_type = "t2.micro"
 }
@@ -778,9 +780,7 @@ Any machine running Terraform
 NOT on EC2.  
 
 ---
-
 # Terraform Import
-
 Terraform Import allows Terraform to start managing an existing resource without recreating it.
 When to use?  
 - Existing EC2 instance
@@ -788,7 +788,6 @@ When to use?
 - Existing IAM Role
   
 ## Terraform Import (Bring Existing Resources Under Terraform Management)
-
 ### Step 1: Create Import Block
 In your Terraform configuration:
 ```hcl
@@ -837,26 +836,15 @@ This confirms the resource is successfully imported and Terraform state is synch
 ---
 
 # Drift
-
+` Terraform Code ≠ Actual Infrastructure `
 Terraform drift occurs when infrastructure is modified outside Terraform.
 Example:
 * Terraform created an EC2 instance.
 * An engineer manually changes its instance type from the AWS Console.
 * Terraform state and actual infrastructure are now different.
-
----
-
-## How to Detect Drift?
-
-A drift exists when: ` Terraform Code ≠ Actual Infrastructure `
-Common reasons:
-* Manual changes from Cloud Console
-* CLI/API modifications
-* Scripts executed outside Terraform
-* Emergency production fixes not reflected in code
-
-### Option 1 (Recommended): Audit & Alerting
-
+ 
+### Drift Detection: 
+#### Option 1 (Recommended): Audit & Alerting
 Best practice in production environments.  
 Example AWS approach:
 * CloudTrail records infrastructure changes.
@@ -869,10 +857,8 @@ Benefits:
 * No need for scheduled Terraform runs.
 * Better security and governance.
 
-### Option 2: Scheduled Drift Checks
-
-Run drift detection periodically using a Cron Job, Jenkins Job, GitHub Actions workflow, etc.  
-
+#### Option 2: Scheduled Drift Checks
+Run drift detection periodically using a Cron Job, Jenkins Job, GitHub Actions workflow, etc.   
 The `-refresh-only` flag instructs Terraform to inspect the real-world infrastructure, detect the manual changes, and update the state file to reflect reality, without actually modifying your live resources.
 
 **Preview Drift:** ` terraform plan -refresh-only `
