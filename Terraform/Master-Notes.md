@@ -1,4 +1,4 @@
-# Terraform
+<img width="4032" height="1354" alt="image" src="https://github.com/user-attachments/assets/d4d98235-03af-4348-ac76-020c07fa9db4" /># Terraform
 
 ## Why Infrastructure as Code (IaC)?
 Before the advent of IaC:
@@ -1148,32 +1148,21 @@ for_each is used to create multiple resources, while dynamic blocks are used to 
 ---
 
 # Terraform Taint / Untaint (Deprecated)
+`terraform taint aws_instance.web` → Marks a resource for recreation during the next `terraform apply`.  
+`terraform untaint aws_instance.web` → Removes the taint mark.
 
-### Taint
-Marks a resource for forced recreation during the next terraform apply.
-
-`terraform taint aws_instance.web ` → Terraform marks the resource as tainted in the state file.
-
-Next apply: ` terraform apply `  
-Terraform performs:  
-Destroy old resource  
-Create new resource  
-
-### What is Untaint?
-
-Removes the taint mark from a resource.  
-`terraform untaint aws_instance.web ` → Resource will no longer be recreated during the next apply.
-
-### Why Was Taint Deprecated?  
-Since Terraform v0.15.2, HashiCorp recommends:  
-```
+### Recommended Replacement
+```bash
 terraform apply -replace="aws_instance.web"
 ```
+→ Force recreation of a resource even if there are no configuration changes. And is the modern replacement for `terraform taint`.
+
+### Why Was Taint Deprecated?  
+Since Terraform v0.15.2, HashiCorp recommends: ` terraform apply -replace="aws_instance.web" `
 Instead of ` terraform taint aws_instance.web` and  ` terraform apply `  
 Because -replace shows the replacement directly in the plan and apply workflow, making changes safer and easier to review.
 
-## Modern Approach
-` Terraform apply -replace="aws_instance.web" ` → Force recreation of a resource even if there are no configuration changes.
+**Modern Approach:** ` Terraform apply -replace="aws_instance.web" ` 
 
 ---
 ## Policy Enforcement
