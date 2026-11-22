@@ -1,4 +1,4 @@
-<img width="4032" height="1354" alt="image" src="https://github.com/user-attachments/assets/d4d98235-03af-4348-ac76-020c07fa9db4" /># Terraform
+# Terraform
 
 ## Why Infrastructure as Code (IaC)?
 Before the advent of IaC:
