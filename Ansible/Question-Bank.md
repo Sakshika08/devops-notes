@@ -230,13 +230,13 @@ Validation Checks
 
 ## Q: What is the difference between copy and template in Ansible?
 The copy module transfers a file to the target server exactly as it is, without modifying its contents. 
-The template module processes a Jinja2 (.j2) template first, replacing variables and expressions with actual values, and then copies the rendered file to the target server.  
+The template module processes a Jinja2 template file (.j2) by replacing variables and expressions with actual values from playbook variables, inventory variables, host variables, group variables, or Ansible facts. The rendered output is then copied to the target host. This allows the same configuration template to be reused across multiple servers with environment-specific values.   
 For example, if I need the same configuration file on multiple servers but with different hostnames, IPs, or environment-specific values, I would use the template module. If the file content is static and does not require variable substitution, I would use the copy module.
 
 template = renders Jinja2 variables before copying; copy = copies the file as-is.
 
 
-What is a Handler?  
+**What is a Handler?**  
 A handler is a task that runs only when notified by a changed task, typically used for service restart or reload operations.
 
 ```
@@ -262,7 +262,6 @@ A handler is a task that runs only when notified by a changed task, typically us
         name: nginx
         state: restarted
 ```
-
 ---
 
 **What is Inventory?**    
@@ -273,9 +272,6 @@ A playbook is a YAML file that defines a sequence of tasks to be executed on man
 
 **What is a Role?**   
 A role is a reusable and modular way to organize Ansible content such as tasks, handlers, templates, variables, and files.
-
-**What is a Handler?**   
-A handler is a task that runs only when notified by a changed task, commonly used to restart or reload services.
 
 **What is a Template?**  
 A template is a Jinja2-based file that renders variables dynamically before being copied to the target host.
@@ -296,6 +292,69 @@ This helps determine whether SSH access or authentication is causing the issue.
 If the failure is related to variables, I verify that all required variables are defined and have the correct values. I also review inventory files, group variables, and host variables.  
 For module-specific failures, I check the target server logs and validate prerequisites such as package repositories, permissions, disk space, network connectivity, or service availability.  
 Finally, I rerun the playbook after fixing the issue and verify that all tasks complete successfully.
+
+## Q. An Ansible playbook fails on only one server but succeeds on all others. How do you troubleshoot?
+First, I would identify the failed task from the playbook output and rerun with increased verbosity using -vvv. Then I would verify connectivity using ansible all -m ping, check SSH access, compare the failed server with healthy servers, verify variables, permissions, disk space, package repositories, and service status. I would also review logs on the target host to determine the root cause.
+
+## Q. Ansible cannot connect to a host. What would you check?
+I would verify the inventory entry, test SSH connectivity manually, confirm the host is reachable using ping, check firewall and security group rules, verify SSH keys or credentials, and run ansible host -m ping to validate Ansible connectivity.
+
+## Q. You updated a configuration file but the service did not restart. Why?
+If a handler is responsible for restarting the service, I would verify that the task notified the handler and that the configuration file actually changed. Handlers only run when a task reports a changed state.
+
+## Q. A newly created EC2 is not appearing in Dynamic Inventory.
+I would verify that the instance is running, check AWS permissions used by the inventory plugin, validate the inventory configuration, verify required tags are applied correctly, and run ansible-inventory --list to confirm whether the plugin can discover the instance.
+
+## Q. Playbook hangs during execution. What would you check?
+I would identify the task where execution is stuck, verify SSH connectivity, check network latency, investigate long-running commands or package installations, and execute the playbook with -vvv for detailed logs. I would also verify the target host is not resource constrained.
+
+## Q. How would you roll back if deployment fails?
+I would use Ansible block and rescue sections. If deployment fails, the rescue block can restore the previous application version, revert configuration changes, restart the previous service version, and notify the team.
+```
+block:
+  - Deploy application
+
+rescue:
+  - Restore backup
+  - Restart previous version
+```
+
+## Q. Some tasks report CHANGED every time even though nothing changed. Why?
+That indicates the task is not idempotent. Ansible modules should maintain the desired state. I would review the module usage, shell commands, or file operations causing unnecessary changes and replace them with idempotent modules where possible.
+
+## Q. Production patching needs to happen on 100 servers with minimal risk. How would you do it?
+Use rolling execution:
+```
+- hosts: web
+  serial: 10
+```
+Ansible patches 10 servers at a time rather than all 100 simultaneously. This reduces operational risk and allows validation before proceeding.
+
+## Q. You deployed a configuration file but the application is using old values.
+I would verify the template rendered correctly, check the deployed file contents, confirm the service was restarted or reloaded, verify the application is reading the correct configuration file, and review application logs.
+
+## Q. How would you verify deployment success after a playbook completes?
+I would perform post-deployment validation using service checks, health endpoint validation using the uri module, port checks using wait_for, and application-specific smoke tests. If validation fails, the playbook should return an error and fail the deployment pipeline.
+Example:
+```
+- uri:
+    url: http://localhost:8080/health
+    status_code: 200
+```
+
+## Q. Jenkins triggers an Ansible playbook, but the job fails immediately. Where do you start?
+First, I would check the Jenkins console logs to identify the failure stage. Then I would verify credential configuration, inventory availability, SSH connectivity, playbook syntax, variable files, and Ansible execution logs.
+
+## Q. Your playbook works manually but fails in Jenkins.
+Common causes:
+Missing credentials  
+Different user account  
+Wrong inventory path  
+Missing environment variables  
+Different Ansible version  
+Missing SSH key  
+
+**Gold line:** If a playbook works manually but fails in Jenkins, I first compare the execution context, credentials, and environment used by Jenkins versus my local execution.
 
 ---
 -m = Module to run
