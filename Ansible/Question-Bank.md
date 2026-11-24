@@ -2,7 +2,7 @@
 We used Ansible for configuration management and server automation. Instead of manually logging into multiple Linux servers and performing the same steps repeatedly, we automated those tasks using Ansible playbooks. This helped ensure consistency, reduced human errors, and saved time during deployments and server provisioning.
 
 ## Tasks I performed using Ansible
-We primarily used Ansible for configuration management and server automation. I created and executed playbooks for package installation, service management, application deployment, configuration file deployment using templates, Docker and Nginx setup, user management, and patching activities. We also integrated Ansible with Jenkins, where Jenkins triggered Ansible playbooks during deployments to ensure consistent configurations across multiple Linux servers. This reduced manual effort and helped maintain standardization across environments.
+We primarily used Ansible for configuration management and server automation. I created and executed playbooks for package installation, service management, configuration file deployment using templates, Docker and Nginx setup, user management, and patching activities. We also integrated Ansible with Jenkins to automate configuration and operational tasks during releases, ensuring consistent configurations across multiple Linux servers.
 
 ### 1. Package Installation
 I used Ansible to automate package installation across multiple Linux servers, ensuring all servers had the required software versions.
@@ -33,14 +33,7 @@ template:
   dest: /etc/app/app.conf
 ```
 
-## 4. Application Deployment
-After Jenkins built the application, Ansible was used to deploy the artifact to target servers and restart the service.
-```
-copy:
-  src: app.jar
-  dest: /opt/app/
-```
-## 5. User and Permission Management
+## 4. User and Permission Management
 We automated user creation, SSH key deployment, and permission management on Linux servers.
 ```
 user:
@@ -191,7 +184,8 @@ include_role:	Include a role (dynamic
 ```
 
 ## Blocks
-Blocks are used to group tasks and implement error handling using block, rescue, and always sections.
+Blocks are used to group tasks and implement error handling using block, rescue, and always sections.  
+If a task inside the block fails, execution moves to the rescue section where corrective actions such as rollback, logging, or notifications can be performed. The always section runs regardless of success or failure, similar to a finally block in programming.  
 ```
 block:
   - name: Install package
@@ -202,34 +196,39 @@ block:
 rescue:
   - debug:
       msg: "Installation failed"
+always:
+  - debug:
+      msg: "Block Completed"
 ```
 
 ## Dynamic Inventory
-For AWS: aws_ec2.yml  
-Instead of manually maintaining inventory:
+In AWS environments, Ansible Dynamic Inventory uses the AWS EC2 API to discover instances dynamically instead of relying on a manually maintained inventory file. Instances are typically grouped using EC2 tags such as Role=web, Role=db, or Environment=prod. During inventory refresh, Ansible queries AWS, reads these tags, and automatically places servers into the appropriate inventory groups. As a result, newly created EC2 instances are discovered and grouped automatically without manual inventory updates.
 ```
-[web]
-10.1.1.10
-10.1.1.11
-```
-Ansible can automatically discover EC2 instances.
+plugin: amazon.aws.aws_ec2
 
-In cloud environments we generally use Dynamic Inventory so newly created EC2 instances are automatically discovered.
+keyed_groups:
+  - prefix: role
+    key: tags.Role
+
+  - prefix: env
+    key: tags.Environment
+```
+
+In enterprise environments, inventory discovery is often automated through **Ansible Tower inventory syncs** or triggered from provisioning workflows such as Terraform, Jenkins, or AWS EventBridge.
 
 ## CI/CD Integration
-We commonly use Ansible in CI/CD pipelines for application deployment, configuration management, and post-deployment tasks.
-```
-GitHub/Jenkins
+We commonly use Ansible in CI/CD pipelines for configuration management, server automation, patching activities, and post-deployment tasks.
+    Jenkins  
         ↓
-Ansible Playbook
+Ansible Playbook  
         ↓
-Deploy Application
+Configuration Updates  
         ↓
-Restart Service
-```
+Service Management  
+        ↓
+Validation Checks  
 
 ## Q: What is the difference between copy and template in Ansible?
-
 The copy module transfers a file to the target server exactly as it is, without modifying its contents. 
 The template module processes a Jinja2 (.j2) template first, replacing variables and expressions with actual values, and then copies the rendered file to the target server.  
 For example, if I need the same configuration file on multiple servers but with different hostnames, IPs, or environment-specific values, I would use the template module. If the file content is static and does not require variable substitution, I would use the copy module.
@@ -266,23 +265,25 @@ A handler is a task that runs only when notified by a changed task, typically us
 
 ---
 
-What is Inventory?  
+**What is Inventory?**    
 Inventory is a file that contains the list of servers Ansible manages, either as individual hosts or grouped hosts.
 
-What is a Playbook?  
+**What is a Playbook?**    
 A playbook is a YAML file that defines a sequence of tasks to be executed on managed hosts.
 
-What is a Role?   
+**What is a Role?**   
 A role is a reusable and modular way to organize Ansible content such as tasks, handlers, templates, variables, and files.
 
-What is a Handler?   
+**What is a Handler?**   
 A handler is a task that runs only when notified by a changed task, commonly used to restart or reload services.
 
-What is a Template?  
+**What is a Template?**  
 A template is a Jinja2-based file that renders variables dynamically before being copied to the target host.
 
-What is Ansible Vault?  
+**What is Ansible Vault?**  
 Ansible Vault is used to encrypt and securely store sensitive data such as passwords, tokens, and API keys.
+
+**Indempotency**: if we run a playbook to insatll httpd package twice, ansible won’t do anything the second time becouse the “state” is already recahed.
 
 ## If an Ansible playbook execution fails,how do you trobleshoot?
 If an Ansible playbook execution fails, I first check the exact error message in the playbook output using increased verbosity: ` ansible-playbook playbook.yml -vvv `  
