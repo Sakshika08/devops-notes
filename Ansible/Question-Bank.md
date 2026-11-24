@@ -58,13 +58,12 @@ Ansible was used for regular OS patching and package updates across multiple ser
 ```
 
 ## Q. Explain Ansible Architecture.
-Answer:  
-Control Node = Machine where Ansible is installed.
-Managed Nodes = Target servers managed by Ansible.
-Inventory = List of managed hosts.
-Playbook = YAML file containing automation tasks.
-Modules = Units of work executed on managed nodes.
-SSH = Communication method between control node and managed nodes.
+Control Node = Machine where Ansible is installed.  
+Managed Nodes = Target servers managed by Ansible.  
+Inventory = List of managed hosts.  
+Playbook = YAML file containing automation tasks.  
+Modules = Units of work executed on managed nodes.  
+SSH = Communication method between control node and managed nodes.  
 
 Ansible works on a Control Node → connects to Managed Nodes via SSH → executes modules defined in Playbooks against hosts from Inventory.
 
@@ -131,12 +130,29 @@ Become is used for privilege escalation, similar to sudo in Linux.
 import_tasks: common.yml
 include_tasks: common.yml
 ```
-Difference:
+Both import_tasks and include_tasks are used to split large playbooks into smaller task files, improving reusability and maintainability.  
+The main difference is when Ansible loads the task file:  
+**import_tasks** is static. Ansible reads and imports the task file during playbook parsing, before execution starts.  
+**include_tasks** is dynamic. Ansible loads the task file (at runtime) only when execution reaches that statement, allowing conditional and runtime decisions.
+```
+tasks:
+  - import_tasks: common.yml
+```
+With import_tasks, Ansible reads common.yml before execution begins and adds those tasks to the playbook.
 
-import_tasks → static, loaded before execution.
-include_tasks → dynamic, loaded during execution.
 
-For interviews: import_tasks is static, include_tasks is dynamic.
+```tasks:
+  - include_tasks: common.yml
+```
+
+**Why does it matter?**  
+Because include_tasks can be conditional.  
+Ansible decides at runtime whether to load the file.  
+With import_tasks, the file is loaded regardless because parsing happens before execution.
+```
+- include_tasks: install.yml
+  when: ansible_os_family == "RedHat"
+  ```
 
 ## Blocks
 Blocks are used to group tasks and implement error handling using block, rescue, and always sections.
