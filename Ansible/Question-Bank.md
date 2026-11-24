@@ -126,24 +126,28 @@ Register captures the output of a task and stores it in a variable for later use
 Become is used for privilege escalation, similar to sudo in Linux.
 
 ## Include vs Import
-```
-import_tasks: common.yml
-include_tasks: common.yml
-```
 Both import_tasks and include_tasks are used to split large playbooks into smaller task files, improving reusability and maintainability.  
 The main difference is when Ansible loads the task file:  
-**import_tasks** is static. Ansible reads and imports the task file during playbook parsing, before execution starts.  
-**include_tasks** is dynamic. Ansible loads the task file (at runtime) only when execution reaches that statement, allowing conditional and runtime decisions.
+**import_tasks** is static. Ansible reads and imports the task file during playbook parsing, before execution starts.
+Use when tasks are always required.  
+**include_tasks** is dynamic. Ansible loads the task file (at runtime) only when execution reaches that statement, allowing conditional and runtime decisions.  
+Use when tasks need to be loaded conditionally 
 ```
-tasks:
-  - import_tasks: common.yml
+---
+- hosts: web
+  become: yes
+  tasks:
+    - import_tasks: common.yml
 ```
 With import_tasks, Ansible reads common.yml before execution begins and adds those tasks to the playbook.
 
 
-```tasks:
+```
+tasks:
   - include_tasks: common.yml
 ```
+With include_tasks, Ansible loads common.yml only when that task is encountered during execution.
+
 
 **Why does it matter?**  
 Because include_tasks can be conditional.  
@@ -152,7 +156,39 @@ With import_tasks, the file is loaded regardless because parsing happens before 
 ```
 - include_tasks: install.yml
   when: ansible_os_family == "RedHat"
-  ```
+```
+
+**What gets loaded?**
+The file being loaded is typically a task file, not a complete playbook.  
+A complete playbook containing hosts: and tasks: cannot be used with import_tasks or include_tasks.  
+For complete playbooks, use: `- import_playbook: web.yml`
+
+Note>> A playbook can import another playbook using import_playbook. There is no include_playbook module. Dynamic inclusion is supported for tasks and roles using include_tasks and include_role, but complete playbooks are imported statically using import_playbook.
+
+import_playbook:	Import an entire playbook  
+import_tasks:	Import a task file (static)  
+include_tasks:	Include a task file (dynamic)  
+import_role:	Import a role (static)  
+include_role:	Include a role (dynamic  
+
+```
+---
+- hosts: web
+
+  tasks:
+
+    - name: Always run common tasks
+      import_tasks: common.yml
+
+    - name: Run Docker tasks only if needed
+      include_tasks: docker.yml
+      when: install_docker
+
+    - name: Run Kubernetes tasks only in prod
+      include_tasks: k8s.yml
+      when: env == "prod"
+
+```
 
 ## Blocks
 Blocks are used to group tasks and implement error handling using block, rescue, and always sections.
